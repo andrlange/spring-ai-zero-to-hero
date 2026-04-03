@@ -1,0 +1,14 @@
+spring:
+  main:
+    web-application-type: none
+  ai:
+    mcp:
+      client:
+        stdio:
+          servers-configuration: classpath:/mcp-servers-config.json
+        # sse:
+        #   connections:
+        #     02-basic-http-mcp-server:
+        #       url: http://localhost:8080
+  config:
+    import: "optional:classpath:/creds.yaml"

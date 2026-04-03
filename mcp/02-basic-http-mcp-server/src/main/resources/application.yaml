@@ -1,0 +1,12 @@
+spring:
+  ai:
+    mcp:
+      server:
+        # stdio: true
+        name: basic-http-mcp-server
+        version: 1.0.0
+        type: SYNC
+
+  main:
+    banner-mode: off # we have turn off the banner for the same reason as to why we turn off console logging
+

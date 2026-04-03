@@ -1,0 +1,18 @@
+spring:
+  config:
+    import: "optional:classpath:/creds.yaml"
+  profiles:
+    active: #pgvector
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+logging:
+  level:
+    org:
+      springframework:
+        ai: DEBUG

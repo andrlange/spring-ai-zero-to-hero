@@ -1,0 +1,28 @@
+spring:
+  profiles:
+    active:  spy
+  config:
+    import: "optional:classpath:/creds.yaml"
+  ai:
+    anthropic:
+      base-url: https://api.anthropic.com
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+---
+# Activate the spy profile and run the gateway app if you want to
+# observe the network traffic between the client app and anthropic
+spring:
+  config:
+    activate:
+      on-profile: spy
+  ai:
+    anthropic:
+      base-url: "http://localhost:7777/anthropic"

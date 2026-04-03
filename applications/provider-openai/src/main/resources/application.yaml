@@ -1,0 +1,81 @@
+spring:
+  application:
+    name: openai
+  profiles:
+    active:  # spy, pgvector
+  config:
+    import: "optional:classpath:/creds.yaml"
+  ai:
+    openai:
+      chat:
+        options:
+          functions:
+            - weatherFunction
+          n: 1
+          model: "gpt-4o-mini"
+management:
+  tracing:
+    enabled: false
+---
+spring:
+  config:
+    activate:
+      on-profile: observe
+  ai:
+    chat:
+      observations:
+        log-prompt: true
+        log-completion: true
+logging:
+  level:
+    org:
+      springframework:
+        ai:
+          chat:
+            observation: DEBUG
+            client:
+              observation: DEBUG
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+      encoding: json
+      export:
+        enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: spy
+  ai:
+    openai:
+      chat:
+        base-url: "http://localhost:7777/openai"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: pgvector
+  datasource:
+    url: jdbc:postgresql://localhost:15432/openai
+    username: postgres
+    password: password
+  ai:
+    vectorstore:
+      pgvector:
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+        dimension: 1536

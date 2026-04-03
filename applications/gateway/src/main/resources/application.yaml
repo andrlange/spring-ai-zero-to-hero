@@ -1,0 +1,23 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 7777
+
+logging:
+  level:
+    org.springframework.cloud.gateway.server.mvc: TRACE
+    org.springframework.web.client.RestClient: DEBUG
+    org.springframework.web: DEBUG
+    org.apache.hc.client5.http.wire: DEBUG
+    # If you want headers too, add these optional loggers
+    org.apache.hc.client5.http.headers: DEBUG
+    org.apache.hc.client5.http: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
