@@ -18,8 +18,8 @@ Check that you have these installed before the workshop starts:
 **Java 25 via SDKMAN:**
 
 ```bash
-sdk install java 25-open
-sdk use java 25-open
+sdk install java 25.0.2-librca
+sdk use java 25.0.2-librca
 ```
 
 **Java 25 via Homebrew (macOS):**

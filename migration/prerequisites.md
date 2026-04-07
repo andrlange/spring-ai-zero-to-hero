@@ -11,8 +11,8 @@ Spring Boot 4.0 requires **Java 25** as minimum version.
 ### Install via SDKMAN (recommended)
 
 ```bash
-sdk install java 25-open
-sdk use java 25-open
+sdk install java 25.0.2-librca
+sdk use java 25.0.2-librca
 ```
 
 ### Install via Homebrew (macOS)

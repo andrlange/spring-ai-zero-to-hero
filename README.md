@@ -60,7 +60,7 @@ Then open:
 
 ## Prerequisites
 
-- **Java 25+** — `sdk install java 25-open`
+- **Java 25+** — `sdk install java 25.0.2-librca`
 - **Docker** — for PostgreSQL/pgvector and Grafana LGTM
 - **Ollama** — `ollama pull mistral && ollama pull nomic-embed-text && ollama pull llava`
 

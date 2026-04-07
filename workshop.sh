@@ -78,11 +78,11 @@ cmd_check() {
             ok "Java ${major} — meets requirement (25+)"
         else
             warn "Java ${major} detected — Spring Boot 4.0.5 requires Java 25+"
-            info "Install via: sdk install java 25-open"
+            info "Install via: sdk install java 25.0.2-librca"
         fi
     else
         fail "Java not installed"
-        info "Install via: sdk install java 25-open"
+        info "Install via: sdk install java 25.0.2-librca"
     fi
 
     header "Maven wrapper"
