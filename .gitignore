@@ -51,3 +51,6 @@ docs/superpowers/
 /backlog/
 project.json
 result.html
+
+### Ollama model exports ###
+models/*.tar.gz
