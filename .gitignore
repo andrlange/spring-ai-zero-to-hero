@@ -48,3 +48,6 @@ CLAUDE.md
 docs/superpowers/
 *.pid
 
+/backlog/
+project.json
+result.html
