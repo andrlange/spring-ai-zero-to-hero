@@ -74,7 +74,9 @@ public class OpenApiSpecReader {
           }
         }
 
-        endpoints.sort(Comparator.comparing(StageDefinition.EndpointInfo::path));
+        endpoints.sort(
+            Comparator.comparing(StageDefinition.EndpointInfo::group)
+                .thenComparingInt(e -> endpointOrder(e.path())));
 
         enriched.add(
             new StageDefinition(
@@ -197,6 +199,32 @@ public class OpenApiSpecReader {
       return "accordion";
     }
     return "text";
+  }
+
+  private static int endpointOrder(String path) {
+    // Explicit ordering to match the workshop guide (docs/guide.md).
+    // Within a group, endpoints follow pedagogical order rather than alphabetical.
+    return switch (path) {
+      // Stage 1: chat_05 — time before weather before search
+      case "/chat/05/time" -> 0;
+      case "/chat/05/dayOfWeek" -> 1;
+      case "/chat/05/weather" -> 2;
+      case "/chat/05/pack" -> 3;
+      case "/chat/05/search" -> 4;
+      // Stage 2: embed_01 — text before dimension
+      case "/embed/01/text" -> 0;
+      case "/embed/01/dimension" -> 1;
+      // Stage 2: embed_02 — words before quotes
+      case "/embed/02/words" -> 0;
+      case "/embed/02/quotes" -> 1;
+      // Stage 2: embed_04 — json, text, pdf/pages, pdf/para
+      case "/embed/04/json/bikes" -> 0;
+      case "/embed/04/text/works" -> 1;
+      case "/embed/04/pdf/pages" -> 2;
+      case "/embed/04/pdf/para" -> 3;
+      // Stage 5: oneshot before multi-step variants
+      default -> path.endsWith("/oneshot") ? 0 : 50;
+    };
   }
 
   private String textOrEmpty(JsonNode node, String field) {
