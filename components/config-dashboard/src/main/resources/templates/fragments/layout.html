@@ -105,6 +105,38 @@
 <div th:fragment="scripts">
     <script th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
     <script th:src="@{/vendor/htmx/htmx.min.js}"></script>
+    <script th:src="@{/vendor/marked/marked.min.js}"></script>
+    <script th:src="@{/vendor/highlightjs/highlight.min.js}"></script>
+    <script th:src="@{/vendor/highlightjs/languages/java.min.js}"></script>
+    <script th:src="@{/vendor/highlightjs/languages/yaml.min.js}"></script>
+    <script th:src="@{/vendor/highlightjs/languages/bash.min.js}"></script>
+    <script th:src="@{/vendor/highlightjs/languages/xml.min.js}"></script>
+    <script th:src="@{/vendor/mermaid/mermaid.min.js}"></script>
+    <script>
+        mermaid.initialize({ theme: 'dark', startOnLoad: false });
+        var docMarked = new marked.Marked();
+        docMarked.use({
+            breaks: true,
+            gfm: true,
+            renderer: {
+                code: function(token) {
+                    var text = typeof token === 'string' ? token : (token.text || '');
+                    var lang = typeof token === 'string' ? '' : (token.lang || '');
+                    if (lang === 'mermaid') {
+                        return '<pre class="mermaid">' + text + '</pre>';
+                    }
+                    try {
+                        var highlighted = lang && hljs.getLanguage(lang)
+                            ? hljs.highlight(text, { language: lang }).value
+                            : hljs.highlightAuto(text).value;
+                        return '<pre><code class="hljs language-' + lang + '">' + highlighted + '</code></pre>';
+                    } catch(e) {
+                        return '<pre><code>' + text + '</code></pre>';
+                    }
+                }
+            }
+        });
+    </script>
     <script th:src="@{/js/sidebar.js}"></script>
     <script th:src="@{/js/response.js}"></script>
 </div>

@@ -2,7 +2,7 @@
 
 **Test Date:** 2026-04-03
 **Infrastructure:** PostgreSQL 18 (pgvector), Grafana LGTM (otel-lgtm:latest)
-**Providers Tested:** Ollama (mistral + nomic-embed-text), OpenAI (gpt-4o-mini), Anthropic (Claude, direct API), AWS Bedrock (Amazon Nova Lite, eu-central-1), Google (Gemini 2.5 Flash)
+**Providers Tested:** Ollama (qwen3 + nomic-embed-text), OpenAI (gpt-4o-mini), Anthropic (Claude, direct API), AWS Bedrock (Amazon Nova Lite, eu-central-1), Google (Gemini 2.5 Flash)
 
 ---
 
@@ -13,7 +13,7 @@
 | PostgreSQL 18 (pgvector) | PASS | Port 15432, Flyway migration successful |
 | Grafana LGTM | PASS | Port 3000, v12.4.2, datasource UIDs: loki, prometheus, tempo |
 | OTLP endpoints | PASS | gRPC :4317, HTTP :4318 |
-| Ollama | PASS | mistral (default chat), nomic-embed-text, llava, llama3.2 available |
+| Ollama | PASS | qwen3 (default chat), nomic-embed-text, llava, llama3.2 available |
 
 ---
 
@@ -27,9 +27,9 @@
 | chat_03 | `/chat/03/joke?adjective=funny&topic=cats` | PASS | PASS | |
 | chat_04 list | `/chat/04/plays/list` | PASS | PASS | |
 | chat_04 map | `/chat/04/plays/map` | PASS | PASS | Fixed prompt for Map structure |
-| chat_04 object | `/chat/04/plays/object` | PASS | PASS | Requires mistral 7B (was FAIL with llama3.2) |
+| chat_04 object | `/chat/04/plays/object` | PASS | PASS | Requires qwen3 8B (was FAIL with llama3.2) |
 | chat_05 time | `/chat/05/time?tz=Europe/Berlin` | PASS | PASS | |
-| chat_05 weather | `/chat/05/weather?city=Berlin` | PASS | PASS | Works with mistral (was PARTIAL with llama3.2) |
+| chat_05 weather | `/chat/05/weather?city=Berlin` | PASS | PASS | Works with qwen3 (was PARTIAL with llama3.2) |
 | chat_05 search | `/chat/05/search?query=italian+for+4` | PASS | PASS | Fixed: LocalDate→String, returnDirect handling |
 | chat_06 fruit | `/chat/06/fruit` | PASS | PASS | |
 | chat_06 veg | `/chat/06/veg` | PASS | PASS | |
@@ -39,8 +39,8 @@
 **Ollama: 14/14 PASS | OpenAI: 14/14 PASS**
 
 ### Findings
-- `chat_04/object`: Fixed by switching default to mistral (7B) — llama3.2 was too small
-- `chat_05/weather`: Fixed by switching to mistral — tool calling now works with Ollama
+- `chat_04/object`: Fixed by switching default to qwen3 (8B) — llama3.2 was too small
+- `chat_05/weather`: Fixed by switching to qwen3 — tool calling now works reliably with Ollama
 - `chat_07`: Fixed — auto-switches to llava model when running on Ollama
 - `chat_05/search` fix: Changed `LocalDate`/`LocalTime` to `String` (Jackson 3 can't deserialize), switched to `.content()` + manual parsing for `returnDirect=true`
 - Removed deprecated `spring.ai.openai.chat.options.functions` config (Spring AI 2.0 breaking change)
@@ -267,7 +267,7 @@ No credentials available for testing.
 | **Total** | **44** | **44/44** | **44/44** | **14/14** | **8/8** | **13/13** |
 
 ### All endpoints pass with Ollama and OpenAI; Anthropic and AWS Bedrock pass within scope
-- Ollama default chat model: **mistral** (7B) — handles structured output + tool calling
+- Ollama default chat model: **qwen3** (8B) — reliable structured output + tool calling
 - Multimodal (chat_07): auto-switches to **llava** for Ollama
 - Embeddings: **nomic-embed-text** (768 dims, 8192 context)
 - Anthropic: chat-only (no embedding API available)

@@ -92,13 +92,12 @@ docker compose -f docker/postgres/docker-compose.yaml up -d
 # Start observability stack (Grafana, Loki, Tempo, Mimir, OTel Collector)
 docker compose -f docker/observability-stack/docker-compose.yaml up -d
 
-# Start Ollama (if not already running as a service)
-ollama serve
+# Ollama (optional — only needed for local provider)
+# ollama serve
+# ollama pull qwen3 && ollama pull nomic-embed-text && ollama pull llava
 
-# Pull required models
-ollama pull mistral
-ollama pull nomic-embed-text
-ollama pull llava         # for multimodal demo (chat_07)
+# For cloud providers, configure API keys instead:
+# ./workshop.sh creds
 ```
 
 ---
@@ -461,7 +460,7 @@ docker compose -f docker/observability-stack/docker-compose.yaml up -d
 ollama serve
 
 # Pull Ollama models
-ollama pull mistral && ollama pull nomic-embed-text && ollama pull llava
+ollama pull qwen3 && ollama pull nomic-embed-text && ollama pull llava
 
 # Run Ollama provider with everything
 ./mvnw spring-boot:run -pl applications/provider-ollama \

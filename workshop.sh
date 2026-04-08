@@ -39,17 +39,112 @@ app_is_ready() {
     return 1
 }
 
+# ── Credential check helpers ────────────────────────────────
+# Returns 0 if provider has a configured (non-placeholder) creds.yaml
+provider_has_creds() {
+    local provider="$1"
+
+    # AWS uses ~/.aws/credentials instead of creds.yaml
+    if [ "${provider}" = "aws" ]; then
+        [ -f "${HOME}/.aws/credentials" ] && return 0
+        return 1
+    fi
+
+    local creds_file="${SCRIPT_DIR}/applications/provider-${provider}/src/main/resources/creds.yaml"
+
+    [ ! -f "${creds_file}" ] && return 1
+
+    # Check for placeholder patterns that indicate unconfigured credentials
+    if grep -qE '\.\.\..*here\.\.\.|sk-\.\.\.your|sk-ant-\.\.\.your' "${creds_file}" 2>/dev/null; then
+        return 1
+    fi
+    return 0
+}
+
+# Returns a compact one-line credential status string
+creds_status_line() {
+    local line=""
+    local providers=("openai" "anthropic" "azure" "google" "aws")
+    for p in "${providers[@]}"; do
+        if provider_has_creds "${p}"; then
+            line+="${p} ${GREEN}✓${NC}  "
+        else
+            line+="${p} ${RED}✗${NC}  "
+        fi
+    done
+    echo -e "${line}"
+}
+
+# ── Running services status ─────────────────────────────────
+# Returns a compact services status line for the TUI header
+services_status_line() {
+    local line=""
+
+    # Provider app on port 8080
+    if command -v lsof &>/dev/null && lsof -ti:8080 &>/dev/null; then
+        # Try to detect which provider from PID file or process
+        local prov="unknown"
+        if [ -f "${SCRIPT_DIR}/.workshop-provider.pid" ]; then
+            # Check the process command line for provider name
+            local ppid
+            ppid=$(cat "${SCRIPT_DIR}/.workshop-provider.pid" 2>/dev/null)
+            if [ -n "${ppid}" ] && kill -0 "${ppid}" 2>/dev/null; then
+                for p in ollama openai anthropic azure google aws; do
+                    if ps -p "${ppid}" -o args= 2>/dev/null | grep -q "provider-${p}"; then
+                        prov="${p}"
+                        break
+                    fi
+                done
+            fi
+        fi
+        line+="provider:${GREEN}${prov}${NC}  "
+    else
+        line+="provider:${RED}off${NC}  "
+    fi
+
+    # Gateway/spy on port 7777
+    if command -v lsof &>/dev/null && lsof -ti:7777 &>/dev/null; then
+        line+="spy:${GREEN}on${NC}  "
+    else
+        line+="spy:${RED}off${NC}  "
+    fi
+
+    # UI profile — check if dashboard endpoint responds
+    if curl -sf -o /dev/null http://localhost:8080/dashboard 2>/dev/null; then
+        line+="ui:${GREEN}on${NC}  "
+    else
+        line+="ui:${RED}off${NC}  "
+    fi
+
+    # Docker: postgres
+    if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "postgres"; then
+        line+="pg:${GREEN}on${NC}  "
+    else
+        line+="pg:${RED}off${NC}  "
+    fi
+
+    # Docker: LGTM
+    if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "grafana-lgtm"; then
+        line+="lgtm:${GREEN}on${NC}"
+    else
+        line+="lgtm:${RED}off${NC}"
+    fi
+
+    echo -e "${line}"
+}
+
 # ── Constants ────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PID_FILE="${SCRIPT_DIR}/.workshop.pid"
 PROVIDER_PID_FILE="${SCRIPT_DIR}/.workshop-provider.pid"
+GATEWAY_PID_FILE="${SCRIPT_DIR}/.workshop-gateway.pid"
 
 POSTGRES_COMPOSE="${SCRIPT_DIR}/docker/postgres/docker-compose.yaml"
 LGTM_COMPOSE="${SCRIPT_DIR}/docker/observability-stack/docker-compose.yaml"
 POSTGRES_CONTAINER="postgres-postgres-1"
 LGTM_CONTAINER="grafana-lgtm"
 
-OLLAMA_MODELS=("mistral" "nomic-embed-text" "llava")
+OLLAMA_MODELS=("qwen3" "nomic-embed-text" "llava")
 DATABASES=("ollama" "openai" "azure")
 
 PROVIDERS=("ollama" "openai" "anthropic" "azure" "google" "aws")
@@ -94,7 +189,7 @@ cmd_check() {
         fail "Maven wrapper (mvnw) not found"
     fi
 
-    header "Ollama"
+    header "Ollama (optional — needed only for provider-ollama)"
     if command -v ollama &>/dev/null; then
         ok "Ollama installed — $(ollama --version 2>&1 | head -1)"
         # Check if Ollama server is running
@@ -105,7 +200,7 @@ cmd_check() {
                 if echo "${model_list}" | grep -q "${model}"; then
                     ok "Model ${model} — available"
                 else
-                    fail "Model ${model} — not pulled"
+                    warn "Model ${model} — not pulled"
                     info "Run: ollama pull ${model}"
                 fi
             done
@@ -113,8 +208,8 @@ cmd_check() {
             warn "Ollama server is not running — start with: ollama serve"
         fi
     else
-        fail "Ollama not installed"
-        info "Install from https://ollama.com/"
+        info "Ollama not installed (not needed for cloud providers)"
+        info "Install from https://ollama.com/ if you want to run locally"
     fi
 
     header "Docker"
@@ -138,6 +233,10 @@ cmd_check() {
         fail "Docker not installed"
     fi
 
+    header "Cloud Provider Credentials"
+    echo -e "  $(creds_status_line)"
+    echo -e "  Run ${CYAN}./workshop.sh creds${NC} to configure API keys."
+
     echo ""
     echo "──────────────────────────────────────────────"
     echo -e "Check complete. Fix any ${RED}❌${NC} items above."
@@ -153,7 +252,7 @@ cmd_setup() {
     echo -e "${BOLD}Spring AI Zero-to-Hero — Setup${NC}"
     echo "──────────────────────────────────────────────"
 
-    header "Pulling Ollama models"
+    header "Pulling Ollama models (optional)"
     if command -v ollama &>/dev/null; then
         for model in "${OLLAMA_MODELS[@]}"; do
             echo -e "  ${CYAN}→${NC} Pulling ${model}..."
@@ -161,8 +260,7 @@ cmd_setup() {
             ok "${model} ready"
         done
     else
-        fail "Ollama not installed — skipping model pull"
-        info "Install from https://ollama.com/"
+        info "Ollama not installed — skipping model pull (not needed for cloud providers)"
     fi
 
     header "Pulling Docker images"
@@ -254,6 +352,39 @@ cmd_start() {
     "${SCRIPT_DIR}/mvnw" install -T 4 -DskipTests -q -f "${SCRIPT_DIR}/pom.xml"
     ok "Build complete"
 
+    # Start gateway if spy profile is enabled
+    if echo "${profiles}" | grep -q "spy"; then
+        header "Starting Gateway (spy profile — port 7777)"
+        # Check if gateway is already running
+        if command -v lsof &>/dev/null && lsof -ti:7777 &>/dev/null; then
+            ok "Gateway already running on port 7777"
+        else
+            "${SCRIPT_DIR}/mvnw" spring-boot:run \
+                -pl "applications/gateway" \
+                -f "${SCRIPT_DIR}/pom.xml" &
+            local gw_pid=$!
+            echo "${gw_pid}" > "${GATEWAY_PID_FILE}"
+            # Wait for gateway to be ready on port 7777
+            echo -e "  ${CYAN}→${NC} Waiting for gateway on port 7777..."
+            local gw_attempts=0
+            while [ "${gw_attempts}" -lt 60 ]; do
+                if curl -sf http://localhost:7777/actuator/health &>/dev/null; then
+                    ok "Gateway started (PID ${gw_pid})"
+                    break
+                fi
+                if ! kill -0 "${gw_pid}" 2>/dev/null; then
+                    fail "Gateway process exited unexpectedly"
+                    return 1
+                fi
+                sleep 2
+                gw_attempts=$((gw_attempts + 1))
+            done
+            if [ "${gw_attempts}" -ge 60 ]; then
+                warn "Gateway startup timed out — provider may fail to connect"
+            fi
+        fi
+    fi
+
     # Build the run command
     local run_cmd=("${SCRIPT_DIR}/mvnw" spring-boot:run
         -pl "applications/provider-${provider}"
@@ -305,6 +436,8 @@ cmd_start() {
     echo -e "  Swagger UI: ${CYAN}http://localhost:8080/swagger-ui.html${NC}"
     [ -n "$(echo "${profiles}" | grep 'observation' || true)" ] && \
         echo -e "  Grafana:    ${CYAN}http://localhost:3000${NC}"
+    [ -n "$(echo "${profiles}" | grep 'spy' || true)" ] && \
+        echo -e "  Gateway:    ${CYAN}http://localhost:7777${NC} (spy — all AI traffic logged)"
     echo ""
 }
 
@@ -357,6 +490,29 @@ cmd_stop() {
     fi
 
     ok "Provider stopped"
+
+    # Stop gateway if running
+    if [ -f "${GATEWAY_PID_FILE}" ]; then
+        local gw_pid
+        gw_pid=$(cat "${GATEWAY_PID_FILE}")
+        if kill -0 "${gw_pid}" 2>/dev/null; then
+            echo -e "  ${CYAN}→${NC} Stopping gateway (PID ${gw_pid})..."
+            kill -- -"${gw_pid}" 2>/dev/null || kill "${gw_pid}" 2>/dev/null || true
+            sleep 2
+            kill -0 "${gw_pid}" 2>/dev/null && kill -9 "${gw_pid}" 2>/dev/null || true
+        fi
+        rm -f "${GATEWAY_PID_FILE}"
+    fi
+    # Also kill anything on port 7777
+    if command -v lsof &>/dev/null; then
+        local gw_port_pids
+        gw_port_pids=$(lsof -ti:7777 2>/dev/null || true)
+        if [ -n "${gw_port_pids}" ]; then
+            echo -e "  ${CYAN}→${NC} Killing remaining processes on port 7777..."
+            echo "${gw_port_pids}" | xargs kill -9 2>/dev/null || true
+        fi
+    fi
+    ok "Gateway stopped"
 
     # Ask about Docker containers
     echo ""
@@ -456,8 +612,8 @@ cmd_status() {
         warn "Docker not available"
     fi
 
-    header "Ollama"
     if command -v ollama &>/dev/null; then
+        header "Ollama"
         local status_model_list
         if status_model_list=$(ollama list 2>/dev/null); then
             ok "Ollama server running"
@@ -471,8 +627,6 @@ cmd_status() {
         else
             warn "Ollama server not running"
         fi
-    else
-        warn "Ollama not installed"
     fi
 
     header "Endpoints"
@@ -536,6 +690,7 @@ cmd_help() {
     echo ""
     echo -e "${BOLD}Commands:${NC}"
     echo "  check                          Check all prerequisites"
+    echo "  creds [provider]               Configure API keys for cloud providers"
     echo "  setup                          Pull Ollama models, Docker images, build project"
     echo "  infra <postgres|lgtm|all>      Start Docker infrastructure"
     echo "  start <provider> [--profiles]  Start infrastructure + provider app"
@@ -568,28 +723,303 @@ cmd_help() {
 }
 
 # ─────────────────────────────────────────────────────────────
+# cmd_creds — Manage provider credentials
+# ─────────────────────────────────────────────────────────────
+
+# Ensure creds.yaml exists by copying from template if needed
+ensure_creds_file() {
+    local provider="$1"
+    local resources="${SCRIPT_DIR}/applications/provider-${provider}/src/main/resources"
+    local creds="${resources}/creds.yaml"
+    local template="${resources}/creds-template.yaml"
+
+    if [ ! -f "${creds}" ] && [ -f "${template}" ]; then
+        cp "${template}" "${creds}"
+        info "Created creds.yaml from template"
+    fi
+}
+
+# Replace a YAML value in creds.yaml using a key path pattern
+# Usage: set_creds_value file "pattern-before-value" "new-value"
+set_creds_value() {
+    local file="$1"
+    local pattern="$2"
+    local value="$3"
+    # Use sed to replace the value after the matched key
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "s|${pattern}.*|${pattern} ${value}|" "${file}"
+    else
+        sed -i "s|${pattern}.*|${pattern} ${value}|" "${file}"
+    fi
+}
+
+setup_openai_creds() {
+    local creds="${SCRIPT_DIR}/applications/provider-openai/src/main/resources/creds.yaml"
+    ensure_creds_file "openai"
+
+    echo ""
+    echo -e "${BOLD}OpenAI Credentials${NC}"
+    echo -e "  Get a key at: ${CYAN}https://platform.openai.com/api-keys${NC}"
+    echo ""
+
+    local current=""
+    if [ -f "${creds}" ]; then
+        current=$(grep 'api-key:' "${creds}" 2>/dev/null | head -1 | sed 's/.*api-key: *//' | xargs)
+    fi
+    if [ -n "${current}" ] && ! echo "${current}" | grep -qE '\.\.\..*here|sk-\.\.\.'; then
+        echo -e "  Current: ${current:0:12}...${current: -4}"
+    fi
+
+    local key
+    read -r -p "  API key (or Enter to skip): " key
+    if [ -n "${key}" ]; then
+        set_creds_value "${creds}" "api-key:" "${key}"
+        ok "OpenAI API key saved"
+    else
+        info "Skipped"
+    fi
+}
+
+setup_anthropic_creds() {
+    local creds="${SCRIPT_DIR}/applications/provider-anthropic/src/main/resources/creds.yaml"
+    ensure_creds_file "anthropic"
+
+    echo ""
+    echo -e "${BOLD}Anthropic Credentials${NC}"
+    echo -e "  Get a key at: ${CYAN}https://console.anthropic.com/settings/keys${NC}"
+    echo ""
+
+    local current=""
+    if [ -f "${creds}" ]; then
+        current=$(grep 'api-key:' "${creds}" 2>/dev/null | head -1 | sed 's/.*api-key: *//' | xargs)
+    fi
+    if [ -n "${current}" ] && ! echo "${current}" | grep -qE '\.\.\..*here|sk-ant-\.\.\.'; then
+        echo -e "  Current: ${current:0:12}...${current: -4}"
+    fi
+
+    local key
+    read -r -p "  API key (or Enter to skip): " key
+    if [ -n "${key}" ]; then
+        set_creds_value "${creds}" "api-key:" "${key}"
+        ok "Anthropic API key saved"
+    else
+        info "Skipped"
+    fi
+}
+
+setup_azure_creds() {
+    local creds="${SCRIPT_DIR}/applications/provider-azure/src/main/resources/creds.yaml"
+    ensure_creds_file "azure"
+
+    echo ""
+    echo -e "${BOLD}Azure OpenAI Credentials${NC}"
+    echo -e "  Create resource: ${CYAN}az cognitiveservices account create ...${NC}"
+    echo -e "  See creds-template.yaml for full instructions."
+    echo ""
+
+    local current_key="" current_endpoint="" current_deployment=""
+    if [ -f "${creds}" ]; then
+        current_key=$(grep 'api-key:' "${creds}" 2>/dev/null | head -1 | sed 's/.*api-key: *//' | xargs)
+        current_endpoint=$(grep 'endpoint:' "${creds}" 2>/dev/null | head -1 | sed 's/.*endpoint: *//' | xargs)
+        current_deployment=$(grep 'deployment-name:' "${creds}" 2>/dev/null | head -1 | sed 's/.*deployment-name: *//' | xargs)
+    fi
+
+    if [ -n "${current_key}" ] && ! echo "${current_key}" | grep -qE '\.\.\..*here'; then
+        echo -e "  Current API key:    ${current_key:0:8}...${current_key: -4}"
+    fi
+    if [ -n "${current_endpoint}" ] && ! echo "${current_endpoint}" | grep -qE 'your-resource'; then
+        echo -e "  Current endpoint:   ${current_endpoint}"
+    fi
+    if [ -n "${current_deployment}" ]; then
+        echo -e "  Current deployment: ${current_deployment}"
+    fi
+    echo ""
+
+    local key endpoint deployment
+    read -r -p "  API key (or Enter to skip): " key
+    read -r -p "  Endpoint URL, e.g. https://NAME.openai.azure.com/ (or Enter to skip): " endpoint
+    read -r -p "  Deployment name, e.g. gpt-41-mini (or Enter to skip): " deployment
+
+    local changed=false
+    if [ -n "${key}" ]; then
+        set_creds_value "${creds}" "api-key:" "${key}"
+        changed=true
+    fi
+    if [ -n "${endpoint}" ]; then
+        set_creds_value "${creds}" "endpoint:" "${endpoint}"
+        changed=true
+    fi
+    if [ -n "${deployment}" ]; then
+        set_creds_value "${creds}" "deployment-name:" "${deployment}"
+        changed=true
+    fi
+
+    if [ "${changed}" = true ]; then
+        ok "Azure OpenAI credentials saved"
+    else
+        info "Skipped"
+    fi
+}
+
+setup_google_creds() {
+    local creds="${SCRIPT_DIR}/applications/provider-google/src/main/resources/creds.yaml"
+    ensure_creds_file "google"
+
+    echo ""
+    echo -e "${BOLD}Google AI Credentials${NC}"
+    echo -e "  Get a Gemini API key at: ${CYAN}https://aistudio.google.com/apikey${NC}"
+    echo -e "  Or use Vertex AI with GCP project credentials."
+    echo ""
+
+    local current_key="" current_project=""
+    if [ -f "${creds}" ]; then
+        current_key=$(grep 'api-key:' "${creds}" 2>/dev/null | head -1 | sed 's/.*api-key: *//' | xargs)
+        current_project=$(grep 'project-id:' "${creds}" 2>/dev/null | head -1 | sed 's/.*project-id: *//' | xargs)
+    fi
+
+    if [ -n "${current_key}" ] && ! echo "${current_key}" | grep -qE '\.\.\..*here'; then
+        echo -e "  Current API key:    ${current_key:0:8}...${current_key: -4}"
+    fi
+    if [ -n "${current_project}" ] && ! echo "${current_project}" | grep -qE 'your-project'; then
+        echo -e "  Current project ID: ${current_project}"
+    fi
+    echo ""
+
+    local key project
+    read -r -p "  API key (or Enter to skip): " key
+    read -r -p "  Project ID (or Enter to skip): " project
+
+    local changed=false
+    if [ -n "${key}" ]; then
+        # Google template has two api-key entries (chat + embedding) — update both
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s|api-key:.*|api-key: ${key}|g" "${creds}"
+        else
+            sed -i "s|api-key:.*|api-key: ${key}|g" "${creds}"
+        fi
+        changed=true
+    fi
+    if [ -n "${project}" ]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s|project-id:.*|project-id: ${project}|g" "${creds}"
+        else
+            sed -i "s|project-id:.*|project-id: ${project}|g" "${creds}"
+        fi
+        changed=true
+    fi
+
+    if [ "${changed}" = true ]; then
+        ok "Google AI credentials saved"
+    else
+        info "Skipped"
+    fi
+}
+
+setup_aws_creds() {
+    echo ""
+    echo -e "${BOLD}AWS Bedrock Credentials${NC}"
+    echo -e "  AWS Bedrock uses ${CYAN}~/.aws/credentials${NC} (standard AWS CLI profile)."
+    echo -e "  No creds.yaml needed — region and model are in application.yaml."
+    echo ""
+
+    if [ -f "${HOME}/.aws/credentials" ]; then
+        ok "AWS credentials file found (~/.aws/credentials)"
+        if command -v aws &>/dev/null; then
+            local identity
+            identity=$(aws sts get-caller-identity --query 'Account' --output text 2>/dev/null || true)
+            if [ -n "${identity}" ]; then
+                ok "AWS account: ${identity}"
+            else
+                warn "AWS credentials exist but could not verify (run: aws sts get-caller-identity)"
+            fi
+        fi
+    else
+        warn "No AWS credentials found"
+        info "Run: aws configure"
+        echo ""
+        local run_configure
+        read -r -p "  Run 'aws configure' now? [y/N] " run_configure
+        if [[ "${run_configure}" =~ ^[Yy]$ ]]; then
+            aws configure
+        fi
+    fi
+}
+
+cmd_creds() {
+    local provider="${1:-}"
+
+    if [ -n "${provider}" ]; then
+        # Direct provider mode
+        case "${provider}" in
+            openai)    setup_openai_creds ;;
+            anthropic) setup_anthropic_creds ;;
+            azure)     setup_azure_creds ;;
+            google)    setup_google_creds ;;
+            aws)       setup_aws_creds ;;
+            *)
+                fail "Unknown provider: ${provider}"
+                echo "Valid providers: openai, anthropic, azure, google, aws"
+                return 1
+                ;;
+        esac
+        return
+    fi
+
+    # Interactive submenu
+    while true; do
+        echo ""
+        echo -e "${BOLD}Configure Cloud Provider Credentials${NC}"
+        echo "──────────────────────────────────────────────"
+        echo -e "  $(creds_status_line)"
+        echo ""
+        echo -e "  ${GREEN}1)${NC} OpenAI        (API key)"
+        echo -e "  ${GREEN}2)${NC} Anthropic     (API key)"
+        echo -e "  ${GREEN}3)${NC} Azure OpenAI  (API key + endpoint + deployment)"
+        echo -e "  ${GREEN}4)${NC} Google AI     (API key + project ID)"
+        echo -e "  ${GREEN}5)${NC} AWS Bedrock   (AWS CLI credentials)"
+        echo -e "  ${RED}b)${NC} Back"
+        echo ""
+        local choice
+        read -r -p "  Select provider: " choice
+        case "${choice}" in
+            1) setup_openai_creds ;;
+            2) setup_anthropic_creds ;;
+            3) setup_azure_creds ;;
+            4) setup_google_creds ;;
+            5) setup_aws_creds ;;
+            b|B) return ;;
+            *) warn "Invalid choice" ;;
+        esac
+    done
+}
+
+# ─────────────────────────────────────────────────────────────
 # Interactive TUI menu helpers
 # ─────────────────────────────────────────────────────────────
 draw_menu() {
     clear
-    echo -e "${BOLD}${CYAN}┌───────────────────────────────────────────┐${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  ${BOLD}Spring AI Zero-to-Hero Workshop${NC}          ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  Boot 4.0.5 | AI 2.0.0-M4 | Java 25       ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}├───────────────────────────────────────────┤${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}                                           ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 1)${NC} Check prerequisites                  ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 2)${NC} Setup (pull models + images + build) ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 3)${NC} Start infrastructure                 ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 4)${NC} Start provider                       ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 5)${NC} Stop all                             ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 6)${NC} Reset demo state                     ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 7)${NC} Status                               ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 8)${NC} Open Grafana                         ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 9)${NC} Open Swagger UI                      ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN}10)${NC} Open Dashboard                       ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  ${RED} q)${NC} Quit                                 ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}                                           ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}└───────────────────────────────────────────┘${NC}"
+    echo -e "${BOLD}${CYAN}┌──────────────────────────────────────────────────────────┐${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  ${BOLD}Spring AI Zero-to-Hero Workshop${NC}                         ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  Boot 4.0.5 | AI 2.0.0-M4 | Java 25                      ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}├──────────────────────────────────────────────────────────┘${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  Creds: $(creds_status_line)"
+    echo -e "${BOLD}${CYAN}│${NC}  State: $(services_status_line)"
+    echo -e "${BOLD}${CYAN}├──────────────────────────────────────────────────────────┐${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}                                                          ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 1)${NC} Check prerequisites                                 ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 2)${NC} Setup (pull models + images + build)                ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 3)${NC} Start infrastructure                                ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 4)${NC} Start provider                                      ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 5)${NC} Stop all                                            ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 6)${NC} Reset demo state                                    ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 7)${NC} Status                                              ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 8)${NC} Open Grafana                                        ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN} 9)${NC} Open Swagger UI                                     ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  ${GREEN}10)${NC} Open Dashboard                                      ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  ${YELLOW} c)${NC} Configure credentials                               ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  ${RED} q)${NC} Quit                                                ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}                                                          ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}└──────────────────────────────────────────────────────────┘${NC}"
     echo ""
 }
 
@@ -757,6 +1187,7 @@ run_menu() {
             8) open_url "http://localhost:3000"; info "Opening Grafana..."; read -r -p "  Press Enter to continue..." _ ;;
             9) open_url "http://localhost:8080/swagger-ui.html"; info "Opening Swagger UI..."; read -r -p "  Press Enter to continue..." _ ;;
             10) open_url "http://localhost:8080/dashboard"; info "Opening Dashboard..."; read -r -p "  Press Enter to continue..." _ ;;
+            c|C) cmd_creds; read -r -p "  Press Enter to continue..." _ ;;
             q|Q) echo ""; info "Goodbye!"; echo ""; exit 0 ;;
             *) warn "Invalid option: ${choice}" ;;
         esac
@@ -840,6 +1271,9 @@ main() {
             ;;
         status)
             cmd_status
+            ;;
+        creds)
+            cmd_creds "${1:-}"
             ;;
         logs)
             cmd_logs "${1:-provider}"

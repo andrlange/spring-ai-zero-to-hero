@@ -287,7 +287,7 @@ Run with `observation` profile and open Grafana at http://localhost:3000.
 
 | Provider | Chat | Embedding | Multimodal | Tool Calling | Local | Cost | Tested |
 |----------|------|-----------|------------|--------------|-------|------|:------:|
-| **Ollama** | mistral (7B) | nomic-embed-text | llava (auto) | Yes | Yes | Free | 44/44 |
+| **Ollama** | qwen3 (8B) | nomic-embed-text | llava (auto) | Yes | Yes | Free | 44/44 |
 | **OpenAI** | gpt-4o-mini | text-embedding-3 | gpt-4o | Yes | No | Pay-per-use | 44/44 |
 | **Anthropic** | Claude | - | Claude 3+ | Yes | No | Pay-per-use | 14/14 |
 | **Azure OpenAI** | gpt-4.1-mini | text-embedding-3 | gpt-4o | Yes | No | Enterprise | 8/8 |
@@ -309,12 +309,12 @@ Run with `observation` profile and open Grafana at http://localhost:3000.
 
 | Model | Purpose | Params | RAM | Embedding Dims |
 |-------|---------|--------|-----|----------------|
-| `mistral` | Chat (default) | 7B | ~8GB | - |
+| `qwen3` | Chat (default) | 8B | ~8GB | - |
 | `nomic-embed-text` | Embeddings (default) | 137M | ~1GB | 768 |
 | `llava` | Multimodal — auto-used for chat_07 | 7B | ~8GB | - |
 | `llama3.2` | Optional: fast chat for simple demos | 3B | ~4GB | - |
 
-**16 GB macOS:** `mistral` + `nomic-embed-text` = ~9 GB active. `llava` loads on-demand for chat_07 only.
+**16 GB macOS:** `qwen3` + `nomic-embed-text` = ~10 GB active. `llava` loads on-demand for chat_07 only.
 
 ---
 
@@ -385,7 +385,7 @@ docker compose -f docker/observability-stack/docker-compose.yaml up -d
 ollama serve
 
 # Pull required models
-ollama pull mistral && ollama pull nomic-embed-text && ollama pull llava
+ollama pull qwen3 && ollama pull nomic-embed-text && ollama pull llava
 
 # Pick a provider and run
 ./mvnw spring-boot:run -pl applications/provider-ollama -Dspring-boot.run.profiles=pgvector,observation

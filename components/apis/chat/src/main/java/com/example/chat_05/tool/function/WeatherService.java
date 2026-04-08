@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 @Service
 class WeatherService {
 
-  private static final String[] CONDITIONS = {"Sunny", "Cloudy", "Rainy", "Partly Cloudy", "Snowy"};
+  private static final String[] CONDITIONS = {"Sunny", "Cloudy", "Rainy", "Partly Cloudy"};
   private static final String[] WIND_DIRECTIONS = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
 
   public WeatherResponse getCurrentWeather(String city) {
@@ -38,7 +38,7 @@ class WeatherService {
     return String.format(
         """
                         Weather update for %s.
-                        Currently, the skies are %s with the temperature at %.1f degrees.
+                        Currently, the skies are %s with the temperature at %.1f°C.
                         The humidity stands at %d%%, and we've got winds moving at %.1f km/h, coming from the %s.""",
         weather.getCity(),
         weather.getWeatherCondition().toLowerCase(),

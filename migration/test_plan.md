@@ -10,7 +10,7 @@ The project has been migrated to Spring Boot 4.0.5 + Spring AI 2.0.0-M4 + Java 2
 5. **Produce a UI improvement plan** covering: web dashboard, Swagger/OpenAPI, CLI enhancements
 
 ## Test Provider: Ollama (local)
-- Chat model: `mistral`
+- Chat model: `qwen3`
 - Embedding model: `mxbai-embed-large` (1024 dims)
 - Multimodal: `llava` (optional, for chat_07)
 
@@ -33,7 +33,7 @@ docker compose -f docker/observability-stack/docker-compose.yaml up -d
 
 ### 0.3 Verify Ollama
 ```bash
-ollama list   # Should show mistral, nomic-embed-text
+ollama list   # Should show qwen3, nomic-embed-text
 curl http://localhost:11434/api/tags
 ```
 
@@ -92,7 +92,7 @@ curl "http://localhost:8080/chat/05/search?query=italian+restaurant+in+berlin"
 - [ ] /time returns current time for timezone
 - [ ] /weather returns weather data
 - [ ] /search returns restaurant results
-- [ ] mistral supports tool calling reliably
+- [ ] qwen3 supports tool calling reliably
 
 ### 1.6 chat_06 — System Roles
 ```bash

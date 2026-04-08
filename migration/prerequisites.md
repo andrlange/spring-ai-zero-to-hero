@@ -104,7 +104,7 @@ ollama serve
 
 ```bash
 # Required (core demos)
-ollama pull mistral             # Chat model (7B, 4.4GB) — default for provider-ollama
+ollama pull qwen3               # Chat model (8B, 5.2GB) — default for provider-ollama
 ollama pull nomic-embed-text    # Embedding model (768 dims, 8192 ctx, ~274MB) — default for provider-ollama
 
 # Optional (additional demos)
@@ -116,7 +116,7 @@ ollama pull mxbai-embed-large   # Alternative embedding model (1024 dims, 512 ct
 
 ```bash
 ollama list
-# Should show mistral and nomic-embed-text
+# Should show qwen3 and nomic-embed-text
 
 curl http://localhost:11434/api/tags
 # Should return JSON with model list
@@ -126,12 +126,12 @@ curl http://localhost:11434/api/tags
 
 | Model | RAM Required | Disk |
 |-------|-------------|------|
-| mistral (7B) | ~8GB | ~4.4GB |
+| qwen3 (8B) | ~8GB | ~5.2GB |
 | mxbai-embed-large | ~2GB | ~670MB |
 | llava (7B) | ~8GB | ~4.7GB |
 | llama3.2 (3B) | ~4GB | ~2.0GB |
 
-**Minimum**: 8GB RAM for mistral + nomic-embed-text
+**Minimum**: 8GB RAM for qwen3 + nomic-embed-text
 **Recommended**: 16GB RAM for running all models
 
 ---
@@ -336,7 +336,7 @@ export AWS_REGION=us-east-1
 [ ] Maven 3.9.14 available (via wrapper or global)
 [ ] Docker running with sufficient resources (8GB+ RAM)
 [ ] Ollama installed and serving
-[ ] ollama pull mistral             # Chat model (7B, 4.4GB) — default for provider-ollama
+[ ] ollama pull qwen3               # Chat model (8B, 5.2GB) — default for provider-ollama
 [ ] ollama pull nomic-embed-text
 [ ] docker compose -f docker/postgres/docker-compose.yaml up -d
 [ ] docker compose -f docker/observability-stack/docker-compose.yaml up -d

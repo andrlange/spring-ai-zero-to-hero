@@ -31,7 +31,7 @@ After completing this stage, developers will be able to:
 
 > **Background reading:** See [SPRING_AI_INTRODUCTION.md](SPRING_AI_INTRODUCTION.md) for Spring AI fundamentals, [SPRING_AI_STAGE_2.md](SPRING_AI_STAGE_2.md) for embeddings, and [SPRING_AI_STAGE_3.md](SPRING_AI_STAGE_3.md) for vector stores.
 
-- A running AI provider (Ollama with `mistral` + `nomic-embed-text`)
+- A running AI provider (Ollama with `qwen3` + `nomic-embed-text`)
 - For RAG demos: vector store populated via `/load` endpoints
 
 ---

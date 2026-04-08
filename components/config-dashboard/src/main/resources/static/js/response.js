@@ -1,3 +1,6 @@
+// Documentation state
+var _currentDocData = null;
+
 // Copy curl command to clipboard
 function copyCurl() {
     var curlLine = document.getElementById('curl-line-text');
@@ -80,6 +83,25 @@ function selectEndpoint(el) {
 
     // Update curl line after form is in the DOM
     refreshCurl();
+
+    // Fetch inline documentation
+    var codeSnippetEl = document.getElementById('code-snippet');
+    if (codeSnippetEl) codeSnippetEl.style.display = 'none';
+    _currentDocData = null;
+
+    fetch('/dashboard/docs?path=' + encodeURIComponent(path))
+        .then(function(resp) { return resp.ok ? resp.json() : null; })
+        .then(function(data) {
+            if (!data) return;
+            _currentDocData = data;
+            var snippetEl = document.getElementById('code-snippet');
+            var contentEl = document.getElementById('code-snippet-content');
+            if (snippetEl && contentEl && data.codeSnippet) {
+                contentEl.innerHTML = docMarked.parse(data.codeSnippet);
+                snippetEl.style.display = 'block';
+            }
+        })
+        .catch(function() { /* docs are optional */ });
 }
 
 // Build curl line from current form state
@@ -323,3 +345,33 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+// Documentation modal
+function showDocModal() {
+    if (!_currentDocData || !_currentDocData.fullSection) return;
+    var modal = document.getElementById('doc-modal');
+    var body = document.getElementById('doc-modal-body');
+    if (!modal || !body) return;
+
+    body.innerHTML = docMarked.parse(_currentDocData.fullSection);
+
+    // Render mermaid diagrams
+    var mermaidEls = body.querySelectorAll('.mermaid');
+    if (mermaidEls.length > 0) {
+        mermaid.run({ nodes: mermaidEls });
+    }
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDocModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    var modal = document.getElementById('doc-modal');
+    if (modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDocModal();
+});

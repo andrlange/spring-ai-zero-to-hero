@@ -9,7 +9,8 @@ spring:
       embedding:
         model: nomic-embed-text
       chat:
-        model: mistral
+        model: qwen3
+        # model: mistral   # 7B — weak tool calling support
         # model: llama3.2  # 3B — fast but limited structured output / tool calling
         # model: llava     # 7B — multimodal (image+text)
   threads:

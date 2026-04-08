@@ -186,8 +186,8 @@ Not all AI models are created equal. Features like tool calling, multimodal inpu
 
 | Capability | What It Means | Model Requirement | Example Models |
 |------------|---------------|-------------------|----------------|
-| **Chat Completion** | Generate text from a prompt | All LLMs | All models (mistral, gpt-4o, claude, gemini) |
-| **Tool/Function Calling** | Model emits structured JSON to invoke external functions | Model must be fine-tuned for tool use; it needs to understand when to emit a tool call instead of text | gpt-4o, claude-3.5+, gemini-pro, mistral (not all small models) |
+| **Chat Completion** | Generate text from a prompt | All LLMs | All models (qwen3, gpt-4o, claude, gemini) |
+| **Tool/Function Calling** | Model emits structured JSON to invoke external functions | Model must be fine-tuned for tool use; it needs to understand when to emit a tool call instead of text | gpt-4o, claude-3.5+, gemini-pro, qwen3 (not all small models) |
 | **Structured Output** | Model returns valid JSON matching a schema | Model must reliably follow JSON formatting instructions | Most modern models; smaller models may produce malformed JSON |
 | **Multimodal (Vision)** | Process images alongside text | Model architecture must include a vision encoder | gpt-4o, claude-3.5+, gemini-pro-vision, llava (Ollama) |
 | **Multimodal (Audio)** | Process audio alongside text | Model architecture must include an audio encoder | gpt-4o, gemini-pro |
@@ -305,7 +305,7 @@ Not all multimodal models support all modalities. Each encoder must be trained s
 | Claude 3.5 Sonnet / Opus | Yes | Yes | No | No |
 | Gemini Pro / Flash | Yes | Yes | Yes | Yes |
 | Llava (Ollama) | Yes | Yes | No | No |
-| Mistral (Ollama) | Yes | No | No | No |
+| Qwen3 (Ollama) | Yes | No | No | No |
 | Whisper (OpenAI) | — | — | Yes (dedicated) | — |
 
 ### Structured Output
@@ -341,7 +341,7 @@ This requires the model to reliably produce valid JSON. Larger models (GPT-4o, C
 
 | Provider | Starter Dependency | Default Model | Local/Cloud |
 |----------|--------------------|---------------|-------------|
-| **Ollama** | `spring-ai-ollama-spring-boot-starter` | mistral | Local |
+| **Ollama** | `spring-ai-ollama-spring-boot-starter` | qwen3 | Local |
 | **OpenAI** | `spring-ai-openai-spring-boot-starter` | gpt-4o-mini | Cloud |
 | **Anthropic** | `spring-ai-anthropic-spring-boot-starter` | claude-3.5-sonnet | Cloud |
 | **Azure OpenAI** | `spring-ai-azure-openai-spring-boot-starter` | gpt-4o | Cloud |
@@ -352,7 +352,7 @@ This requires the model to reliably produce valid JSON. Larger models (GPT-4o, C
 
 | Provider | Chat | Tools | Structured Output | Vision | Audio | Streaming |
 |----------|------|-------|-------------------|--------|-------|-----------|
-| **Ollama** (mistral) | Yes | Yes | Yes | No (use llava) | No | Yes |
+| **Ollama** (qwen3) | Yes | Yes | Yes | No (use llava) | No | Yes |
 | **OpenAI** (gpt-4o-mini) | Yes | Yes | Yes | Yes | Yes | Yes |
 | **Anthropic** (claude) | Yes | Yes | Yes | Yes | No | Yes |
 | **Azure OpenAI** | Yes | Yes | Yes | Yes | Yes | Yes |

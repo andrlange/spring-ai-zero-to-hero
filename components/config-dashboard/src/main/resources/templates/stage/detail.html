@@ -60,6 +60,17 @@
                         <p class="text-muted small mb-0">Select an endpoint from the left panel to get started.</p>
                     </div>
 
+                    <!-- Code Snippet Panel -->
+                    <div id="code-snippet" class="code-snippet-panel" style="display:none">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small text-uppercase fw-bold">Key Code</span>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="showDocModal()" title="View full documentation">
+                                <i class="bi bi-info-circle"></i> Docs
+                            </button>
+                        </div>
+                        <div id="code-snippet-content"></div>
+                    </div>
+
                     <!-- Response Panel -->
                     <div id="response-panel" class="response-panel p-3 flex-grow-1">
                         <p class="text-muted text-center mt-4">Select an endpoint and click "Try it" to see the response here.</p>
@@ -78,6 +89,19 @@
         </div>
     </div>
 
+</div>
+
+<!-- Documentation Modal -->
+<div id="doc-modal" class="doc-modal-overlay" style="display:none" onclick="closeDocModal(event)">
+    <div class="doc-modal-content" onclick="event.stopPropagation()">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2" style="border-bottom: 1px solid var(--spring-border);">
+            <h5 class="mb-0 text-light"><i class="bi bi-journal-code me-2"></i>Documentation</h5>
+            <button class="btn btn-sm btn-outline-secondary" onclick="closeDocModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div id="doc-modal-body" class="markdown-body"></div>
+    </div>
 </div>
 
 <div th:replace="~{fragments/layout :: scripts}"></div>

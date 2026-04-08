@@ -26,7 +26,7 @@ After completing this stage, developers will be able to:
 
 > **Background reading:** See [SPRING_AI_INTRODUCTION.md](SPRING_AI_INTRODUCTION.md) for a general introduction to Spring AI, model capabilities (tool calling, multimodal vision/audio, structured output), provider compatibility, and the workshop architecture.
 
-- A running AI provider (Ollama with `mistral` model is the simplest to start)
+- A running AI provider (Ollama with `qwen3` model is the simplest to start)
 - Maven dependency `spring-ai-client-chat` (managed by `spring-ai-bom`)
 
 ---
@@ -644,7 +644,7 @@ public String vegetableQuestion() {
 
 ### Description
 
-Sends an image alongside a text prompt for the AI to describe. Demonstrates the `.media()` method on the user message builder, runtime model selection via `ChatOptions`, and automatic model switching for Ollama (which uses `llava` for vision tasks instead of `mistral`/`llama3.2`).
+Sends an image alongside a text prompt for the AI to describe. Demonstrates the `.media()` method on the user message builder, runtime model selection via `ChatOptions`, and automatic model switching for Ollama (which uses `llava` for vision tasks instead of `qwen3`/`llama3.2`).
 
 ### Spring AI Components
 

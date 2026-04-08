@@ -339,9 +339,11 @@ SDKMAN sets `JAVA_HOME` automatically. The Maven wrapper (`./mvnw`) will use thi
 
 ---
 
-## 5. Install Ollama
+## 5. Install Ollama (optional — needed only for local provider)
 
-You have two options. Choose **one**.
+**Skip this section if you plan to use a cloud provider** (OpenAI, Anthropic, Azure, Google, or AWS). You can configure cloud credentials later with `./workshop.sh creds`.
+
+If you want to run models locally, you have two options. Choose **one**.
 
 ### Option A: Ollama on Windows (Recommended for NVIDIA GPUs)
 
@@ -352,7 +354,7 @@ This is the best option if you have an NVIDIA GPU — it gets full CUDA accelera
 3. Open a **Windows** terminal (PowerShell or CMD) and pull the workshop models:
 
 ```powershell
-ollama pull mistral
+ollama pull qwen3
 ollama pull nomic-embed-text
 ollama pull llava
 ```
@@ -385,7 +387,7 @@ ollama serve &
 3. Pull the workshop models:
 
 ```bash
-ollama pull mistral
+ollama pull qwen3
 ollama pull nomic-embed-text
 ollama pull llava
 ```
@@ -394,7 +396,7 @@ ollama pull llava
 
 ```bash
 ollama list
-# Should show: mistral, nomic-embed-text, llava
+# Should show: qwen3, nomic-embed-text, llava
 ```
 
 ### Which Option Should I Choose?
@@ -719,7 +721,7 @@ Windows 11 on ARM64 is supported with these caveats:
 ### Performance Expectations on ARM64
 
 - **Build times**: Comparable to x86_64 on Snapdragon X Elite / X Plus
-- **Ollama inference**: CPU-only inference is slower than GPU-accelerated. Expect ~5-15 tokens/sec for `mistral` on Snapdragon X Elite. Sufficient for the workshop but noticeably slower than NVIDIA GPU
+- **Ollama inference**: CPU-only inference is slower than GPU-accelerated. Expect ~5-15 tokens/sec for `qwen3` on Snapdragon X Elite. Sufficient for the workshop but noticeably slower than NVIDIA GPU
 - **Docker**: Native arm64 images run at full speed. If an image only has amd64, Docker uses QEMU emulation (~2-5x slower) — this does not affect our workshop since all images are multi-arch
 
 ### ARM64 Setup Differences
@@ -732,7 +734,7 @@ The setup is identical to x86_64 with one exception:
 # Inside WSL2
 curl -fsSL https://ollama.com/install.sh | sh
 ollama serve &
-ollama pull mistral
+ollama pull qwen3
 ollama pull nomic-embed-text
 ollama pull llava
 ```

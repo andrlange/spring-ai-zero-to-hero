@@ -4,6 +4,7 @@ agent-cli.log
 **/.DS_Store
 **/creds.yaml
 **/creds.yml
+**/creds.old
 
 HELP.md
 target/

@@ -62,9 +62,10 @@ Then open:
 
 - **Java 25+** — `sdk install java 25.0.2-librca`
 - **Docker** — for PostgreSQL/pgvector and Grafana LGTM
-- **Ollama** — `ollama pull mistral && ollama pull nomic-embed-text && ollama pull llava`
+- **Ollama** *(optional)* — only needed for local provider: `ollama pull qwen3 && ollama pull nomic-embed-text && ollama pull llava`
+- **Cloud provider** *(alternative to Ollama)* — configure API keys with `./workshop.sh creds`
 
-16 GB macOS: mistral + nomic-embed-text = ~9 GB active RAM. llava loads on-demand.
+16 GB macOS with Ollama: qwen3 + nomic-embed-text = ~10 GB active RAM. llava loads on-demand.
 
 ## Workshop Stages
 
@@ -81,7 +82,7 @@ Then open:
 
 | Provider | Chat | Embedding | Multimodal | Tool Calling | Local | Test Status |
 |----------|------|-----------|------------|--------------|-------|-------------|
-| **Ollama** | mistral (7B) | nomic-embed-text | llava (auto) | Yes | Yes | 44/44 PASS |
+| **Ollama** | qwen3 (8B) | nomic-embed-text | llava (auto) | Yes | Yes | 44/44 PASS |
 | **OpenAI** | gpt-4o-mini | text-embedding-3 | gpt-4o | Yes | No | 44/44 PASS |
 | **Anthropic** | Claude (direct API) | - | Claude 3+ | Yes | No | 14/14 PASS |
 | **Azure OpenAI** | gpt-4.1-mini | text-embedding-3 | gpt-4o | Yes | No | 8/8 PASS |

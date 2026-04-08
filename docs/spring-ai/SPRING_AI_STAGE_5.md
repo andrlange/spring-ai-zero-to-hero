@@ -29,7 +29,7 @@ After completing this stage, developers will be able to:
 
 > **Background reading:** See [SPRING_AI_INTRODUCTION.md](SPRING_AI_INTRODUCTION.md) for Spring AI fundamentals. Stage 5 builds on the `ChatClient` fluent API from [SPRING_AI_STAGE_1.md](SPRING_AI_STAGE_1.md).
 
-- A running AI provider (Ollama with `mistral`)
+- A running AI provider (Ollama with `qwen3`)
 - `Profile.pdf` in the classpath (included in the repository at `src/main/resources/info/Profile.pdf`)
 
 ---

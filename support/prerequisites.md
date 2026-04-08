@@ -116,9 +116,9 @@ docker run --rm hello-world
 
 ---
 
-## 3. Ollama
+## 3. Ollama (optional — needed only for local provider)
 
-Ollama is the local LLM server used for the `provider-ollama` module — the default provider for the workshop. It runs models locally, so no API keys are needed.
+Ollama is the local LLM server used for the `provider-ollama` module. It runs models locally, so no API keys are needed. **Skip this section if you plan to use a cloud provider** (OpenAI, Anthropic, Azure, Google, or AWS).
 
 ### macOS
 
@@ -146,8 +146,8 @@ After installing Ollama, start the server and pull the required models:
 # Start the Ollama server (if not running as a service)
 ollama serve &
 
-# Pull the workshop models (total download: ~6 GB)
-ollama pull mistral
+# Pull the workshop models (total download: ~7 GB)
+ollama pull qwen3
 ollama pull nomic-embed-text
 ollama pull llava
 ```
@@ -156,7 +156,7 @@ ollama pull llava
 
 ```bash
 ollama list
-# Expected: mistral, nomic-embed-text, llava listed
+# Expected: qwen3, nomic-embed-text, llava listed
 ```
 
 ---
@@ -263,7 +263,13 @@ The workshop includes a built-in prerequisite checker that validates everything 
 ./workshop.sh check
 ```
 
-This checks Java version, Maven wrapper, Ollama (server + models), and Docker containers. Fix any items marked with a red cross before the workshop.
+This checks Java version, Maven wrapper, Ollama (if installed), Docker containers, and cloud provider credentials. Fix any items marked with a red cross before the workshop.
+
+To configure API keys for cloud providers (OpenAI, Anthropic, Azure, Google, AWS):
+
+```bash
+./workshop.sh creds
+```
 
 ---
 
@@ -281,9 +287,9 @@ sdk install java 25.0.2-librca
 
 # Docker — install Docker Desktop from https://www.docker.com/products/docker-desktop/
 
-# Ollama
-brew install ollama
-ollama pull mistral && ollama pull nomic-embed-text && ollama pull llava
+# Ollama (optional — only needed for local provider)
+# brew install ollama
+# ollama pull qwen3 && ollama pull nomic-embed-text && ollama pull llava
 
 # Clone and build
 git clone https://github.com/<your-org>/spring-ai-zero-to-hero.git
@@ -310,14 +316,17 @@ sdk install java 25.0.2-librca
 sudo usermod -aG docker $USER
 # Log out and back in
 
-# Ollama
-curl -fsSL https://ollama.com/install.sh | sh
-ollama pull mistral && ollama pull nomic-embed-text && ollama pull llava
+# Ollama (optional — only needed for local provider)
+# curl -fsSL https://ollama.com/install.sh | sh
+# ollama pull qwen3 && ollama pull nomic-embed-text && ollama pull llava
 
 # Clone and build
 git clone https://github.com/<your-org>/spring-ai-zero-to-hero.git
 cd spring-ai-zero-to-hero
 ./mvnw clean compile -T 4
+
+# Configure cloud provider credentials (if not using Ollama)
+./workshop.sh creds
 
 # Verify
 ./workshop.sh check
@@ -340,8 +349,8 @@ Use this checklist to confirm you're ready:
 
 - [ ] Java 25 installed — `java -version` shows `25.0.2`
 - [ ] Docker running — `docker run --rm hello-world` succeeds
-- [ ] Ollama installed — `ollama --version` shows a version
-- [ ] Ollama models pulled — `ollama list` shows `mistral`, `nomic-embed-text`, `llava`
+- [ ] *(optional)* Ollama installed — `ollama --version` shows a version (only for local provider)
+- [ ] *(optional)* Ollama models pulled — `ollama list` shows `qwen3`, `nomic-embed-text`, `llava`
 - [ ] Repository cloned
 - [ ] Build succeeds — `./mvnw clean compile -T 4` completes without errors
 - [ ] `./workshop.sh check` shows all green
@@ -365,10 +374,11 @@ These are not required but improve the workshop experience:
 | Java 25 (SDKMAN) | ~300 MB |
 | Maven dependencies (first build) | ~1.5 GB |
 | Docker images (pgvector, grafana, pgadmin, maildev) | ~2 GB |
-| Ollama models (mistral, nomic-embed-text, llava) | ~6 GB |
-| **Total** | **~10 GB** |
+| Ollama models *(optional)* (qwen3, nomic-embed-text, llava) | ~7 GB |
+| **Total (with Ollama)** | **~11 GB** |
+| **Total (cloud only, no Ollama)** | **~4 GB** |
 
-Ensure you have at least **15 GB** of free disk space before starting.
+Ensure you have at least **5 GB** of free disk space (15 GB if using Ollama).
 
 ---
 

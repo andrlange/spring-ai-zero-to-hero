@@ -8,7 +8,7 @@ How to configure each AI provider, what credentials are needed, and which demos 
 
 | Provider | Chat | Embedding | Multimodal | Tool Calling | Local | Cost |
 |----------|:----:|:---------:|:----------:|:------------:|:-----:|------|
-| **Ollama** | mistral (7B) | nomic-embed-text | llava (auto) | Yes | Yes | Free |
+| **Ollama** | qwen3 (8B) | nomic-embed-text | llava (auto) | Yes | Yes | Free |
 | **OpenAI** | gpt-4o-mini | text-embedding-3 | gpt-4o | Yes | No | Pay-per-use |
 | **Anthropic** | Claude | — | Claude 3+ | Yes | No | Pay-per-use |
 | **Azure OpenAI** | gpt-4.1-mini | text-embedding-3 | gpt-4o | Yes | No | Enterprise |
@@ -53,20 +53,20 @@ Verified 2026-04-03.
 
 ---
 
-## Ollama (Local, No API Key)
+## Ollama (Local, No API Key — Optional)
 
 ### System requirements
 
 | Model | Purpose | Parameters | RAM | Disk | Context |
 |-------|---------|-----------|-----|------|---------|
-| `mistral` | Chat (default) | 7B | ~8 GB | 4.4 GB | 32k |
+| `qwen3` | Chat (default) | 8B | ~8 GB | 5.2 GB | 32k |
 | `nomic-embed-text` | Embeddings (default) | 137M | ~1 GB | 274 MB | 8192 |
 | `llava` | Multimodal — auto-used for chat_07 | 7B | ~8 GB | 4.7 GB | 4096 |
 | `llama3.2` | Optional: faster chat for simple demos | 3B | ~4 GB | 2.0 GB | 128k |
 
-**16 GB macOS:** `mistral` + `nomic-embed-text` runs at ~9 GB active. `llava` loads on-demand for chat_07 only.
+**16 GB macOS:** `qwen3` + `nomic-embed-text` runs at ~10 GB active. `llava` loads on-demand for chat_07 only.
 
-**Minimum system:** 8 GB RAM for mistral + nomic-embed-text. 16 GB recommended for running all models.
+**Minimum system:** 8 GB RAM for qwen3 + nomic-embed-text. 16 GB recommended for running all models.
 
 ### Install and start
 
@@ -81,7 +81,7 @@ curl -fsSL https://ollama.com/install.sh | sh
 ollama serve   # runs on http://localhost:11434/
 
 # Pull required models
-ollama pull mistral
+ollama pull qwen3
 ollama pull nomic-embed-text
 
 # Optional

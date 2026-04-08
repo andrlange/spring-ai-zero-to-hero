@@ -19,7 +19,7 @@ ARCHIVE="${SCRIPT_DIR}/models.tar.gz"
 
 # Models used by this workshop (edit as needed)
 WORKSHOP_MODELS=(
-  "mistral"
+  "qwen3"
   "nomic-embed-text"
   "llama3.2"
   "llava"

@@ -27,15 +27,18 @@ public class DashboardController {
   private final OpenApiSpecReader specReader;
   private final Environment environment;
   private final RestClient restClient;
+  private final DocMappingService docMappingService;
 
   public DashboardController(
       OpenApiSpecReader specReader,
       Environment environment,
       RestClient.Builder restClientBuilder,
+      DocMappingService docMappingService,
       @Value("${server.port:8080}") int port) {
     this.specReader = specReader;
     this.environment = environment;
     this.restClient = restClientBuilder.baseUrl("http://localhost:" + port).build();
+    this.docMappingService = docMappingService;
   }
 
   @GetMapping
@@ -102,6 +105,18 @@ public class DashboardController {
     model.addAttribute("paramsJson", paramsJson);
     model.addAttribute("activePage", "stage-" + number);
     return "stage/detail";
+  }
+
+  @GetMapping("/docs")
+  @ResponseBody
+  public ResponseEntity<Map<String, String>> docs(@RequestParam String path) {
+    return docMappingService
+        .getDocForPath(path)
+        .map(
+            doc ->
+                ResponseEntity.ok(
+                    Map.of("fullSection", doc.fullSection(), "codeSnippet", doc.codeSnippet())))
+        .orElse(ResponseEntity.notFound().build());
   }
 
   @GetMapping("/proxy")

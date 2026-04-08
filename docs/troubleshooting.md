@@ -76,15 +76,15 @@ docker ps | grep postgres
 
 | Model | RAM needed |
 |-------|-----------|
-| mistral (7B) | ~8 GB |
+| qwen3 (8B) | ~8 GB |
 | nomic-embed-text | ~1 GB |
 | llava (7B) | ~8 GB |
 | llama3.2 (3B) | ~4 GB |
 
 **Recommendations:**
 
-- On 8 GB machines: run `mistral` + `nomic-embed-text` only (~9 GB combined — tight but usually works). Avoid loading `llava` at the same time.
-- On 16 GB machines: `mistral` + `nomic-embed-text` leave ~7 GB free for the OS and Docker.
+- On 8 GB machines: run `qwen3` + `nomic-embed-text` only (~10 GB combined — tight but usually works). Avoid loading `llava` at the same time.
+- On 16 GB machines: `qwen3` + `nomic-embed-text` leave ~6 GB free for the OS and Docker.
 - Close other applications to free RAM before starting Ollama with large models.
 
 **To check which models are currently loaded:**
@@ -96,7 +96,7 @@ ollama ps
 **To unload a model:**
 
 ```bash
-ollama stop mistral
+ollama stop qwen3
 ```
 
 ---
@@ -140,7 +140,7 @@ colima start --memory 8 --cpu 4
 
 **Cause:** Structured output (JSON schema conformance) requires a capable model. `llama3.2` (3B) is too small to reliably follow JSON schema constraints.
 
-**Fix:** Use `mistral` (7B) as the default chat model for Ollama, which is the configured default in `applications/provider-ollama`. Do not switch the default model to `llama3.2` if you plan to run structured output demos.
+**Fix:** Use `qwen3` (8B) as the default chat model for Ollama, which is the configured default in `applications/provider-ollama`. Qwen3 provides reliable structured output, tool calling, and reasoning — capabilities that smaller models like `llama3.2` lack.
 
 ---
 
@@ -150,7 +150,7 @@ colima start --memory 8 --cpu 4
 
 **Cause:** Tool calling requires a model that follows function-calling protocols. `llama3.2` (3B) does not reliably support this.
 
-**Fix:** Use `mistral` (7B) — the configured default for provider-ollama. Tool calling works correctly with mistral.
+**Fix:** Use `qwen3` (8B) — the configured default for provider-ollama. Qwen3 reliably follows function-calling protocols, unlike Mistral (7B) which often describes tool calls instead of executing them.
 
 ---
 

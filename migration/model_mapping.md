@@ -8,18 +8,18 @@ Maps every workshop demo to its required AI capabilities and which providers sup
 
 | Model | Size | RAM | Context | Dims | Purpose |
 |-------|------|-----|---------|------|---------|
-| `mistral` | 4.4 GB | ~8 GB | 32k | - | Chat (default) — structured output + tool calling |
+| `qwen3` | 5.2 GB | ~8 GB | 32k | - | Chat (default) — structured output + tool calling |
 | `nomic-embed-text` | 274 MB | ~1 GB | 8192 | 768 | Embeddings (default) |
 | `llava` | 4.7 GB | ~8 GB | 4096 | - | Multimodal (auto-switched for chat_07) |
 | `llama3.2` | 2.0 GB | ~4 GB | 128k | - | Optional: fast chat for simple demos |
 
-**16 GB macOS:** Run `mistral` + `nomic-embed-text` simultaneously (~9 GB). `llava` loads on-demand for chat_07 only.
+**16 GB macOS:** Run `qwen3` + `nomic-embed-text` simultaneously (~10 GB). `llava` loads on-demand for chat_07 only.
 
 ---
 
 ## Stage 1: Chat Fundamentals
 
-| Demo | Endpoint | Capability | Ollama (mistral) | OpenAI (gpt-4o-mini) | Anthropic (Claude) | Notes |
+| Demo | Endpoint | Capability | Ollama (qwen3) | OpenAI (gpt-4o-mini) | Anthropic (Claude) | Notes |
 |------|----------|------------|:-:|:-:|:-:|-------|
 | chat_01 | `/chat/01/joke` | Basic chat | PASS | PASS | PASS | |
 | chat_02 client | `/chat/02/client/joke` | ChatClient API | PASS | PASS | PASS | |
@@ -27,7 +27,7 @@ Maps every workshop demo to its required AI capabilities and which providers sup
 | chat_03 | `/chat/03/joke` | Prompt templates | PASS | PASS | PASS | |
 | chat_04 list | `/chat/04/plays/list` | Structured -> List | PASS | PASS | PASS | |
 | chat_04 map | `/chat/04/plays/map` | Structured -> Map | PASS | PASS | PASS | Prompt tuned for map structure |
-| chat_04 object | `/chat/04/plays/object` | Structured -> POJO | PASS | PASS | PASS | Requires mistral 7B+ for Ollama |
+| chat_04 object | `/chat/04/plays/object` | Structured -> POJO | PASS | PASS | PASS | Requires qwen3 8B for Ollama |
 | chat_05 time | `/chat/05/time` | Tool calling | PASS | PASS | PASS | |
 | chat_05 weather | `/chat/05/weather` | Tool calling (named) | PASS | PASS | PASS | `weatherFunction` bean auto-discovered |
 | chat_05 search | `/chat/05/search` | Tools + returnDirect | PASS | PASS | PASS | Fixed: String params, manual JSON parse |
@@ -37,7 +37,7 @@ Maps every workshop demo to its required AI capabilities and which providers sup
 | chat_08 | `/chat/08/essay` | Streaming | PASS | PASS | PASS | |
 
 ### Stage 1 Summary
-- **Ollama (mistral): 14/14 PASS**
+- **Ollama (qwen3): 14/14 PASS**
 - **OpenAI (gpt-4o-mini): 14/14 PASS**
 
 ---
@@ -163,7 +163,7 @@ Maps every workshop demo to its required AI capabilities and which providers sup
 
 Verified 2026-04-03 for all providers.
 
-| Stage | Endpoints | Ollama (mistral + nomic) | OpenAI (gpt-4o-mini) | Anthropic (Claude) | AWS Bedrock (Nova Lite) | Google (Gemini 2.5 Flash) | Azure OpenAI (gpt-4.1-mini) |
+| Stage | Endpoints | Ollama (qwen3 + nomic) | OpenAI (gpt-4o-mini) | Anthropic (Claude) | AWS Bedrock (Nova Lite) | Google (Gemini 2.5 Flash) | Azure OpenAI (gpt-4.1-mini) |
 |-------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | 1. Chat | 14 | **14 PASS** | **14 PASS** | **14 PASS** | **7 PASS** | **13 PASS** | **7 PASS** |
 | 2. Embeddings | 10 | **10 PASS** | **10 PASS** | N/A (no embeddings) | N/A (chat-only starter) | **13 PASS** | **7 PASS** |
@@ -188,7 +188,7 @@ Verified 2026-04-03 for all providers.
 ### Ollama (Workshop / Offline Mode) — 50/52
 Best path: All stages 1-8 work. Only agentic agent apps (Stage 7) need OpenAI.
 ```bash
-ollama pull mistral && ollama pull nomic-embed-text && ollama pull llava
+ollama pull qwen3 && ollama pull nomic-embed-text && ollama pull llava
 ./mvnw spring-boot:run -pl applications/provider-ollama -Dspring-boot.run.profiles=pgvector,observation
 ```
 

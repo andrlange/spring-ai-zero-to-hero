@@ -102,7 +102,7 @@ Major version upgrade of the entire workshop from Spring Boot 3.5.6 / Spring AI 
 
 | Model | Before | After | Reason |
 |-------|--------|-------|--------|
-| Chat | llama3.2 (3B) | **mistral (7B)** | Structured output + tool calling require 7B+ |
+| Chat | llama3.2 (3B) | **qwen3 (8B)** | Reliable structured output + tool calling; Mistral 7B had weak tool-call compliance |
 | Embedding | mxbai-embed-large (512 ctx) | **nomic-embed-text (8192 ctx)** | Bike documents exceed 512 token context |
 | Multimodal | llava (manual switch) | **llava (auto-switch)** | Controller detects Ollama and switches model |
 
@@ -161,7 +161,7 @@ Major version upgrade of the entire workshop from Spring Boot 3.5.6 / Spring AI 
 - **Note:** If upgrading from an existing database with 1024-dimension vectors, drop the `vector_store` table before starting (Spring AI recreates it automatically)
 
 #### Chat Endpoints
-- Switched default chat model to `mistral` (7B) — handles structured output (POJO/Map) and tool calling
+- Switched default chat model to `qwen3` (8B) — reliable structured output (POJO/Map), tool calling, and reasoning
 - Fixed `chat_04/map` prompt to explicitly request JSON object structure
 - Fixed `chat_05/search`: `LocalDate` → `String` params, `.content()` + manual JSON parsing for `returnDirect`
 - Fixed `chat_07/explain`: auto-switches to `llava` model when running on Ollama
@@ -189,7 +189,7 @@ Major version upgrade of the entire workshop from Spring Boot 3.5.6 / Spring AI 
 
 | Provider | Pass | Total | Notes |
 |----------|:----:|:-----:|-------|
-| **Ollama** (mistral + nomic-embed-text) | 44 | 44 | All chat + embedding + vector + patterns + agents |
+| **Ollama** (qwen3 + nomic-embed-text) | 44 | 44 | All chat + embedding + vector + patterns + agents |
 | **OpenAI** (gpt-4o-mini) | 44 | 44 | All endpoints |
 | **Anthropic** (Claude, direct API) | 14 | 14 | All chat endpoints (no embeddings — Anthropic doesn't offer them) |
 | **AWS Bedrock** (Amazon Nova Lite, eu-central-1) | 8 | 8 | Chat + stuff-the-prompt (no embeddings — Converse starter is chat-only) |
