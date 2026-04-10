@@ -6,6 +6,31 @@
 
 ---
 
+## Important — Before Joining the Workshop
+
+Please make sure Docker is installed and pull the required container images **before** the workshop. Conference WiFi is often too slow for large downloads.
+
+### Docker Images (required)
+
+```bash
+docker pull pgvector/pgvector:pg18
+docker pull dpage/pgadmin4:latest
+docker pull grafana/otel-lgtm:latest
+docker pull maildev/maildev:2.2.1
+```
+
+### Ollama Models (optional — only if using local provider)
+
+```bash
+ollama pull qwen3
+ollama pull nomic-embed-text
+ollama pull llava
+```
+
+> **Tip:** If USB sticks are provided at the workshop, you can import pre-downloaded images and models instead. See [Offline Setup (USB Stick)](#offline-setup-usb-stick) below.
+
+---
+
 ## Tech Stack
 
 | Component | Version |
@@ -61,6 +86,8 @@ javac -version
 ## 2. Docker
 
 Docker is required for PostgreSQL (pgvector) and the observability stack (Grafana, Loki, Tempo, OpenTelemetry Collector).
+
+> **Workshop attendees:** If USB sticks with pre-downloaded images are provided, you can skip pulling Docker images. Install Docker itself, then see [Offline Setup (USB Stick)](#offline-setup-usb-stick) below.
 
 ### macOS
 
@@ -119,6 +146,8 @@ docker run --rm hello-world
 ## 3. Ollama (optional — needed only for local provider)
 
 Ollama is the local LLM server used for the `provider-ollama` module. It runs models locally, so no API keys are needed. **Skip this section if you plan to use a cloud provider** (OpenAI, Anthropic, Azure, Google, or AWS).
+
+> **Workshop attendees:** If USB sticks with pre-downloaded models are provided, you can skip pulling models. Install Ollama itself, then see [Offline Setup (USB Stick)](#offline-setup-usb-stick) below.
 
 ### macOS
 
@@ -340,6 +369,49 @@ Follow the [Windows 11 Setup Guide](howto_windows11.md), then:
 # Inside WSL2 Ubuntu — same as Linux above
 ./workshop.sh check
 ```
+
+---
+
+## Offline Setup (USB Stick)
+
+If the workshop provides USB sticks with pre-downloaded archives, you can import Docker images and Ollama models without downloading them from the internet. This is much faster than pulling over slow conference WiFi.
+
+### What's on the USB stick
+
+| File | Contents | Size |
+|------|----------|------|
+| `containers.tar.gz` | All Docker images (pgvector, pgAdmin, Grafana LGTM, MailDev) | ~1 GB |
+| `models.tar.gz` | Ollama models (qwen3, nomic-embed-text, llava) | ~5 GB |
+
+### Import Docker images
+
+Copy `containers.tar.gz` from the USB stick into the `models/` folder, then run:
+
+```bash
+./models/containers.sh import
+```
+
+This loads all 4 Docker images. Verify with:
+
+```bash
+./models/containers.sh list
+```
+
+### Import Ollama models (optional)
+
+Copy `models.tar.gz` from the USB stick into the `models/` folder, then run:
+
+```bash
+./models/ollama.sh import
+```
+
+This restores all workshop models into your local Ollama. Verify with:
+
+```bash
+./models/ollama.sh list
+```
+
+> **Note:** You still need Docker and Ollama **installed** — the USB stick only provides the images and models so you don't have to download them.
 
 ---
 

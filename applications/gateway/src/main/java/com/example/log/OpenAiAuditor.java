@@ -3,65 +3,41 @@ package com.example.log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.ObjectWriter;
 
 @Service
 public class OpenAiAuditor implements Auditor {
-  Logger logger = LoggerFactory.getLogger(OpenAiAuditor.class);
-  private final ObjectMapper objectMapper;
-  private final ObjectWriter objectWriter;
 
-  OpenAiAuditor() {
-    this.objectMapper = new ObjectMapper();
-    this.objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
-  }
+  private static final Logger logger = LoggerFactory.getLogger(OpenAiAuditor.class);
+  private static final int MAX_BODY_LENGTH = 1000;
 
   @Override
   public void log(AuditLogEntry auditEntry) {
-    StringBuilder message = new StringBuilder("\n\n");
-    message.append("Entry ID: ").append(auditEntry.getId()).append("\n\n");
-
     var request = auditEntry.getRequest();
-
-    // the method
-    message
-        .append(request.getMethod())
-        .append(" ")
-        .append(request.getDestinationUri())
-        .append("\n");
-
-    // print request headers
-    //    for (var header : auditEntry.getRequest().getHeaders().keySet()) {
-    //      message.append(header).append(":
-    // ").append(request.getHeaders().get(header)).append("\n");
-    //    }
-
-    // print the request body
-    try {
-      var body = objectMapper.readValue(request.getBody(), Object.class);
-      var pretty = this.objectWriter.writeValueAsString(body);
-      message.append(pretty).append("\n");
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-
-    // print response headers
     var response = auditEntry.getResponse();
-    //    for (var header : response.getHeaders().keySet()) {
-    //      message.append(header).append(":
-    // ").append(response.getHeaders().get(header)).append("\n");
-    //    }
+    String id = auditEntry.getId().toString().substring(0, 8);
 
-    // print the response body
-    try {
-      var body = objectMapper.readValue(response.getBody(), Object.class);
-      var pretty = this.objectWriter.writeValueAsString(body);
-      message.append("\nResponse Body\n\n").append(pretty).append("\n");
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    // Log request
+    logger.info(
+        "GATEWAY REQUEST [id={}]: {} {} [body={}]",
+        id,
+        request.getMethod(),
+        request.getDestinationUri(),
+        truncate(request.getBody()));
+
+    // Log response
+    logger.info("GATEWAY RESPONSE [id={}]: [body={}]", id, truncate(response.getBody()));
+  }
+
+  private String truncate(String value) {
+    if (value == null || value.isEmpty()) {
+      return "<empty>";
     }
-
-    logger.info(message.toString());
+    if (value.length() <= MAX_BODY_LENGTH) {
+      return value;
+    }
+    return value.substring(0, MAX_BODY_LENGTH)
+        + "... [truncated, total="
+        + value.length()
+        + " chars]";
   }
 }

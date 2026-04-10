@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+    <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="app"/>
+
     <!-- Console Appender with traceId/spanId for local debugging -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{traceId:-},%X{spanId:-}] %-5level [%thread] %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [${appName}] [%X{traceId:-},%X{spanId:-}] %-5level [%thread] %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 

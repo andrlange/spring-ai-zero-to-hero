@@ -359,9 +359,14 @@ cmd_start() {
         if command -v lsof &>/dev/null && lsof -ti:7777 &>/dev/null; then
             ok "Gateway already running on port 7777"
         else
-            "${SCRIPT_DIR}/mvnw" spring-boot:run \
+            # Pass observation profile to gateway if selected
+            local gw_run_cmd=("${SCRIPT_DIR}/mvnw" spring-boot:run \
                 -pl "applications/gateway" \
-                -f "${SCRIPT_DIR}/pom.xml" &
+                -f "${SCRIPT_DIR}/pom.xml")
+            if echo "${profiles}" | grep -q "observation"; then
+                gw_run_cmd+=("-Dspring-boot.run.profiles=observation")
+            fi
+            "${gw_run_cmd[@]}" &
             local gw_pid=$!
             echo "${gw_pid}" > "${GATEWAY_PID_FILE}"
             # Wait for gateway to be ready on port 7777

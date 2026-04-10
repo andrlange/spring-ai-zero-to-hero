@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: gateway
   threads:
     virtual:
       enabled: true
@@ -21,3 +23,46 @@ management:
     web:
       exposure:
         include: '*'
+
+---
+spring:
+  config:
+    activate:
+      on-profile: observation
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+    propagation:
+      type: w3c
+  metrics:
+    tags:
+      application: gateway
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  opentelemetry:
+    resource-attributes:
+      "service.name": gateway
+      "service.version": 1.0.0
+      "deployment.environment": development
+    tracing:
+      export:
+        otlp:
+          endpoint: http://localhost:4318/v1/traces
+    logging:
+      export:
+        enabled: true
+        otlp:
+          endpoint: http://localhost:4318/v1/logs
+          transport: http
+  otlp:
+    metrics:
+      export:
+        url: http://localhost:4318/v1/metrics
+        step: 10s
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
