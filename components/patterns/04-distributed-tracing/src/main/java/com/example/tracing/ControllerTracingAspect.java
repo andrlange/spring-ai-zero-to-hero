@@ -43,10 +43,11 @@ public class ControllerTracingAspect {
   private static final int MAX_RESPONSE_LENGTH = 1000;
 
   private final Tracer tracer;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper;
 
-  public ControllerTracingAspect(Tracer tracer) {
+  public ControllerTracingAspect(Tracer tracer, ObjectMapper objectMapper) {
     this.tracer = tracer;
+    this.objectMapper = objectMapper;
   }
 
   private String truncate(String value) {
@@ -118,11 +119,15 @@ public class ControllerTracingAspect {
       for (int i = 0; i < paramAnnotations.length; i++) {
         for (Annotation paramAnnotation : paramAnnotations[i]) {
           if (paramAnnotation instanceof RequestBody) {
-            String body =
-                (args[i] instanceof String)
-                    ? (String) args[i]
-                    : objectMapper.writeValueAsString(args[i]);
-            requestLog = requestLog + " [body=" + truncate(body) + "]";
+            try {
+              String body =
+                  (args[i] instanceof String)
+                      ? (String) args[i]
+                      : objectMapper.writeValueAsString(args[i]);
+              requestLog = requestLog + " [body=" + truncate(body) + "]";
+            } catch (Exception e) {
+              requestLog = requestLog + " [body=<serialization error>]";
+            }
             break;
           }
         }
@@ -137,8 +142,21 @@ public class ControllerTracingAspect {
         responseBody = "<null>";
       } else if (result instanceof String s) {
         responseBody = s;
+      } else if (result instanceof org.springframework.http.ResponseEntity<?> re) {
+        try {
+          responseBody =
+              re.getBody() == null ? "<null>" : objectMapper.writeValueAsString(re.getBody());
+        } catch (Exception e) {
+          responseBody = result.toString();
+        }
+      } else if (isReactivePublisher(result)) {
+        responseBody = "<streaming>";
       } else {
-        responseBody = objectMapper.writeValueAsString(result);
+        try {
+          responseBody = objectMapper.writeValueAsString(result);
+        } catch (Exception e) {
+          responseBody = result.toString();
+        }
       }
       logger.info("RESPONSE: {} -> {}", spanName, truncate(responseBody));
 
@@ -162,6 +180,15 @@ public class ControllerTracingAspect {
       throw ex;
     } finally {
       span.end();
+    }
+  }
+
+  private boolean isReactivePublisher(Object result) {
+    try {
+      Class<?> publisherClass = Class.forName("org.reactivestreams.Publisher");
+      return publisherClass.isInstance(result);
+    } catch (ClassNotFoundException e) {
+      return false;
     }
   }
 }
