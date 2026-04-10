@@ -22,7 +22,7 @@ datasources:
       tracesToLogsV2:
         customQuery: true
         datasourceUid: "loki"
-        query: '{$${__tags}} |= `$${__trace.traceId}`'
+        query: '{$${__tags}} |= `$${__trace.traceId}` | span_id = `$${__span.spanId}`'
         tags:
           - key: "service.name"
             value: "service_name"
