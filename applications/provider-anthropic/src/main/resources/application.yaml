@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: provider-anthropic
   profiles:
     active:  # spy
   config:

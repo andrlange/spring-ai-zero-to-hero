@@ -1,3 +1,73 @@
+// Format a gateway body string for display:
+// - Try to parse as JSON and pretty-print
+// - Recursively expand nested JSON strings (e.g. tool arguments, tool results)
+// - Unescape literal \n and \" from raw text
+// - Strip trailing newlines
+function formatJsonString(str) {
+    if (!str) return str;
+    try {
+        var parsed = JSON.parse(str);
+        var expanded = expandNestedJson(parsed);
+        return syntaxHighlightJson(expanded);
+    } catch (e) {
+        // Not valid JSON — unescape common escape sequences
+    }
+    str = str.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+    return str.replace(/\n+$/, '');
+}
+
+// Produce syntax-highlighted HTML from a parsed JSON value
+function syntaxHighlightJson(obj) {
+    var json = JSON.stringify(obj, null, 2);
+    if (!json) return '';
+    // Unescape \n inside strings for display, then HTML-escape everything
+    json = json.replace(/\\n/g, '\n').replace(/\\"/g, '"');
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // Colorize tokens (order matters: keys first, then values)
+    return json.replace(
+        /("(?:[^"\\]|\\.)*")\s*:/g,
+        '<span class="json-key">$1</span>:'
+    ).replace(
+        /:\s*("(?:[^"\\]|\\.)*")/g,
+        function(match, val) { return ': <span class="json-string">' + val + '</span>'; }
+    ).replace(
+        /:\s*(-?\d+\.?\d*)/g,
+        ': <span class="json-number">$1</span>'
+    ).replace(
+        /:\s*(true|false)/g,
+        ': <span class="json-bool">$1</span>'
+    ).replace(
+        /:\s*(null)/g,
+        ': <span class="json-null">$1</span>'
+    );
+}
+
+// Recursively walk a parsed object and expand any string values that are valid JSON
+function expandNestedJson(obj) {
+    if (typeof obj === 'string') {
+        try {
+            var inner = JSON.parse(obj);
+            if (typeof inner === 'object' && inner !== null) {
+                return expandNestedJson(inner);
+            }
+        } catch (e) { /* not JSON, return as-is */ }
+        return obj.replace(/\n+$/, '');
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(expandNestedJson);
+    }
+    if (typeof obj === 'object' && obj !== null) {
+        var result = {};
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                result[key] = expandNestedJson(obj[key]);
+            }
+        }
+        return result;
+    }
+    return obj;
+}
+
 // Documentation state
 var _currentDocData = null;
 
@@ -421,6 +491,20 @@ function toggleGatewayPanel() {
     }
 }
 
+function openGatewayModal() {
+    var reqBody = document.getElementById('gateway-request-body');
+    var resBody = document.getElementById('gateway-response-body');
+    var meta = document.getElementById('gateway-request-meta');
+    var modalReq = document.getElementById('modal-gateway-request-body');
+    var modalRes = document.getElementById('modal-gateway-response-body');
+    var modalMeta = document.getElementById('modal-gateway-request-meta');
+    if (modalReq && reqBody) modalReq.innerHTML = reqBody.innerHTML;
+    if (modalRes && resBody) modalRes.innerHTML = resBody.innerHTML;
+    if (modalMeta && meta) modalMeta.textContent = meta.textContent;
+    var modal = new bootstrap.Modal(document.getElementById('gatewayModal'));
+    modal.show();
+}
+
 function fetchGatewayAudit() {
     var panel = document.getElementById('gateway-panel');
     if (!panel) return;
@@ -445,16 +529,16 @@ function fetchGatewayAudit() {
                     metaEl.textContent = data.request.method + ' ' + data.request.uri;
                 }
 
-                // Request body — pretty-print JSON
+                // Request body — pretty-print and syntax-highlight JSON
                 var reqBodyEl = document.getElementById('gateway-request-body');
                 if (reqBodyEl) {
-                    reqBodyEl.textContent = formatJsonString(data.request.body);
+                    reqBodyEl.innerHTML = formatJsonString(data.request.body);
                 }
 
-                // Response body — pretty-print JSON
+                // Response body — pretty-print and syntax-highlight JSON
                 var resBodyEl = document.getElementById('gateway-response-body');
                 if (resBodyEl) {
-                    resBodyEl.textContent = formatJsonString(data.response.body);
+                    resBodyEl.innerHTML = formatJsonString(data.response.body);
                 }
 
                 // Auto-expand
@@ -468,13 +552,4 @@ function fetchGatewayAudit() {
                 panel.style.display = 'none';
             });
     }, 500);
-}
-
-function formatJsonString(str) {
-    if (!str) return '—';
-    try {
-        return JSON.stringify(JSON.parse(str), null, 2);
-    } catch(e) {
-        return str;
-    }
 }

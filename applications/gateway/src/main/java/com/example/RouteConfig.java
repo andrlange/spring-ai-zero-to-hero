@@ -28,25 +28,31 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 @Configuration(proxyBeanMethods = false)
 public class RouteConfig {
-  /**
-   * uri: https://api.openai.com/v1/chat/completions predicates: - Path=/openai/** filters: -
-   * StripPrefix=1
-   *
-   * @return
-   */
-  // http POST :8080/post hello=world
+
   @Bean
   public RouterFunction<ServerResponse> readBodyRoute(
       HttpServletRequest httpServletRequest, OpenAiAuditor openAiAuditor) {
-    return route("openai")
-        .route(path("/letta/**"), http())
-        .before(uri("https://api.openai.com/v1"))
-        .route(path("/openai/**"), http())
-        .before(uri("https://api.openai.com/v1/chat/completions"))
-        .route(path("/anthropic/**"), http())
-        .before(uri("https://api.anthropic.com"))
-        .route(path("/ollama/**"), http())
-        .before(uri("http://localhost:11434/"))
+    return route("gateway")
+        .route(
+            path("/letta/**")
+                .or(path("/openai/**"))
+                .or(path("/anthropic/**"))
+                .or(path("/ollama/**")),
+            http())
+        .before(
+            request -> {
+              String requestPath = request.uri().getPath();
+              if (requestPath.startsWith("/letta/")) {
+                return uri("https://api.openai.com/v1").apply(request);
+              } else if (requestPath.startsWith("/openai/")) {
+                return uri("https://api.openai.com/v1/chat/completions").apply(request);
+              } else if (requestPath.startsWith("/anthropic/")) {
+                return uri("https://api.anthropic.com").apply(request);
+              } else if (requestPath.startsWith("/ollama/")) {
+                return uri("http://localhost:11434/").apply(request);
+              }
+              return request;
+            })
         .before(stripPrefix(1))
         .before(
             request -> {

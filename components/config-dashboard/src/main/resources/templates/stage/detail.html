@@ -7,7 +7,7 @@
     <nav th:replace="~{fragments/layout :: sidebar(${activePage})}"></nav>
 
     <div class="main-wrapper">
-        <div th:replace="~{fragments/layout :: topbar(${stage.name()}, null, null)}"></div>
+        <div th:replace="~{fragments/layout :: topbar(${stage.name()}, ${providerName}, ${activeProfiles})}"></div>
 
         <div class="main-content">
             <div class="d-flex gap-3" style="height: calc(100vh - 110px);">
@@ -92,17 +92,47 @@
                                 <span class="text-uppercase small fw-bold">Gateway</span>
                                 <span class="badge bg-secondary" style="font-size:10px">spy</span>
                             </span>
-                            <i id="gateway-chevron" class="bi bi-chevron-down"></i>
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="bi bi-arrows-fullscreen" style="cursor:pointer;font-size:12px" onclick="event.stopPropagation();openGatewayModal()" title="Expand"></i>
+                                <i id="gateway-chevron" class="bi bi-chevron-down"></i>
+                            </span>
                         </div>
                         <div id="gateway-body" style="display:none">
                             <div class="mb-3">
                                 <div class="text-muted small text-uppercase fw-bold mb-1"><i class="bi bi-arrow-up-right-circle me-1"></i>Request</div>
                                 <div id="gateway-request-meta" class="text-muted small mb-1"></div>
-                                <pre class="response-json" style="max-height:300px;overflow:auto"><code id="gateway-request-body">—</code></pre>
+                                <pre class="response-json" style="max-height:300px;overflow-y:scroll"><code id="gateway-request-body">—</code></pre>
                             </div>
                             <div>
                                 <div class="text-muted small text-uppercase fw-bold mb-1"><i class="bi bi-arrow-down-left-circle me-1"></i>Response</div>
-                                <pre class="response-json" style="max-height:300px;overflow:auto"><code id="gateway-response-body">—</code></pre>
+                                <pre class="response-json" style="max-height:300px;overflow-y:scroll"><code id="gateway-response-body">—</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gateway Expand Modal -->
+                    <div th:if="${spyEnabled}" class="modal fade" id="gatewayModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                            <div class="modal-content" style="background:var(--spring-bg);border:1px solid var(--spring-border)">
+                                <div class="modal-header" style="border-bottom:1px solid var(--spring-border)">
+                                    <h5 class="modal-title d-flex align-items-center gap-2" style="color:var(--spring-text)">
+                                        <i class="bi bi-hdd-network"></i> Gateway <span class="badge bg-secondary" style="font-size:10px">spy</span>
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="modal-gateway-request-meta" class="text-muted small mb-2"></div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="text-muted small text-uppercase fw-bold mb-1"><i class="bi bi-arrow-up-right-circle me-1"></i>Request</div>
+                                            <pre class="response-json" style="max-height:70vh;overflow-y:scroll"><code id="modal-gateway-request-body">—</code></pre>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="text-muted small text-uppercase fw-bold mb-1"><i class="bi bi-arrow-down-left-circle me-1"></i>Response</div>
+                                            <pre class="response-json" style="max-height:70vh;overflow-y:scroll"><code id="modal-gateway-response-body">—</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -1,5 +1,26 @@
 # Changelog — Spring AI Zero-to-Hero Workshop
 
+## [2.2.1] — 2026-04-11: Anthropic Provider Fix & Gateway Spy UI Improvements
+
+Bug fixes for the Anthropic provider and visual improvements to the gateway spy panel in the workshop dashboard.
+
+### Bug Fixes
+
+- **Anthropic provider startup failure** — Added `spring-boot-restclient` dependency. In Spring Boot 4, `RestClient.Builder` auto-configuration moved to a separate module; the Anthropic SDK (OkHttp-based) doesn't pull it in transitively unlike OpenAI/Ollama starters
+- **Gateway routing all requests to Ollama** — In Spring Cloud Gateway MVC 5.x, `.before(uri())` filters apply to all routes in a builder group, not just the preceding route. The last `uri()` (Ollama) always won. Replaced with a single route using dynamic URI selection based on request path
+- **Anthropic provider name showing "unknown"** — Added `spring.application.name: provider-anthropic` to application config
+
+### Dashboard Improvements
+
+- **Gateway spy JSON syntax highlighting** — Color-coded JSON output: green keys, blue strings, yellow numbers, red booleans, gray nulls
+- **Nested JSON expansion** — Tool call arguments and tool results (escaped JSON strings) are expanded into formatted objects
+- **Newline handling** — `\n` sequences unescaped for readability, trailing newlines stripped
+- **Always-visible scrollbar** — Gateway request/response panels show vertical scrollbar when content overflows
+- **Fullscreen expand modal** — New expand icon (⤢) on the gateway panel opens a side-by-side request/response modal for easier inspection of large payloads
+- **Provider and profiles in stage topbar** — Stage detail pages now show the provider name and active profiles (matching the dashboard overview)
+
+---
+
 ## [2.2.0] — 2026-04-10: Enhanced Observability & Offline Workshop Tools
 
 End-to-end distributed tracing with per-span log correlation in Grafana, and offline workshop tooling for slow-WiFi venues.

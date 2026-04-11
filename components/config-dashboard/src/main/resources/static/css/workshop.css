@@ -339,6 +339,13 @@ html, body {
     overflow-y: auto;
 }
 
+/* ===== JSON Syntax Highlighting ===== */
+.json-key { color: #7ee787; }
+.json-string { color: #a5d6ff; }
+.json-number { color: #f2cc60; }
+.json-bool { color: #ff7b72; }
+.json-null { color: #8b949e; }
+
 /* ===== Curl Line ===== */
 .curl-line {
     background-color: #111;

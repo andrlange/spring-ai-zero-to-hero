@@ -104,6 +104,8 @@ public class DashboardController {
     model.addAttribute("groupDescriptions", getGroupDescriptions());
     model.addAttribute("paramsJson", paramsJson);
     model.addAttribute("activePage", "stage-" + number);
+    model.addAttribute("providerName", detectProvider());
+    model.addAttribute("activeProfiles", List.of(environment.getActiveProfiles()));
     model.addAttribute(
         "spyEnabled", Arrays.asList(environment.getActiveProfiles()).contains("spy"));
     return "stage/detail";
