@@ -24,12 +24,6 @@ class FunctionConfiguration {
    *
    *
    */
-  //  @Bean
-  //  @Description("Get the weather in location")
-  //  public Function<WeatherRequest, WeatherResponse> weatherFunction(WeatherService
-  // weatherService) {
-  //    return request -> weatherService.getCurrentWeather(request.city());
-  //  }
 
   @Bean
   public FunctionToolCallback weatherFunctionCallback(WeatherService weatherService) {

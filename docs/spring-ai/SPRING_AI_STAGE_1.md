@@ -414,6 +414,62 @@ public class TimeTools {
 
 ---
 
+## Demo 05a-2 — Tool Calling with System Prompt Hint
+
+**Endpoint:** `GET /chat/05/dayOfWeek?city={city}`
+**Source:** `chat_05/ToolController.java`, `chat_05/tool/annotations/TimeTools.java`
+
+### Description
+
+Reuses the same `TimeTools` as Demo 05a but asks a different question (_what day of the week is tomorrow_) and adds a system prompt instructing the model to call the tool. The tool returns the current day/time; the model then reasons one day forward to answer "tomorrow". Shows that a single tool can support multiple question types and that a system hint (`"You must call the currentTimeIn tool."`) is sometimes needed to push the model toward using the tool instead of guessing.
+
+### Spring AI Components
+
+- `ChatClient` — fluent API with `.tools()` and `.system()`
+- `@Tool` — same `currentTimeIn` method as Demo 05a
+- System prompt — used as a hint to force tool invocation and constrain the answer format
+
+### Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client as HTTP Client
+    participant Controller as ToolController
+    participant ChatClient as ChatClient
+    participant LLM as AI Provider
+    participant Tool as TimeTools
+
+    Client->>Controller: GET /chat/05/dayOfWeek?city=Toronto
+
+    Controller->>ChatClient: .prompt().tools(new TimeTools()).system("You must call currentTimeIn...").user("What day is tomorrow in Toronto?")
+    ChatClient->>LLM: Send prompt + tool schema + system hint
+
+    Note over LLM: System hint pushes model to call the tool
+    LLM-->>ChatClient: Tool call: currentTimeIn("America/Toronto")
+    ChatClient->>Tool: Invoke currentTimeIn("America/Toronto")
+    Tool-->>ChatClient: "Today is MONDAY 2026-04-06T09:15:00-04:00..."
+
+    ChatClient->>LLM: Send tool result back
+    Note over LLM: Model reasons: today=MONDAY → tomorrow=TUESDAY
+    LLM-->>ChatClient: "Tomorrow in Toronto will be Tuesday."
+    ChatClient-->>Controller: .content() → short answer
+    Controller-->>Client: 200 OK — day of week
+```
+
+### Key Code
+
+```java
+chatClient.prompt()
+    .tools(new TimeTools())
+    .system("You must call the currentTimeIn tool. Answer in one short sentence.")
+    .user(u -> u.text("What day of the week is tomorrow in {city}?").param("city", city))
+    .call().content();
+```
+
+> **Takeaway:** The same `@Tool` method can serve many question shapes — the model adapts the call arguments and post-processes the result. When a model is reluctant to use a tool, a system prompt hint (`"You must call X"`) is a simple nudge. Prefer clear tool descriptions first; reach for system hints only when the model still hesitates.
+
+---
+
 ## Demo 05b — Tool Calling with FunctionToolCallback Bean
 
 **Endpoint:** `GET /chat/05/weather?city={city}`
@@ -489,6 +545,64 @@ class WeatherService {
 ```
 
 > **Takeaway:** `FunctionToolCallback` lets you wrap existing services as tools without modifying them. Use `.toolNames("beanName")` when the tool is registered as a Spring bean, vs `.tools(instance)` for ad-hoc tool instances.
+
+---
+
+## Demo 05b-2 — Tool Result Feeds Downstream Reasoning
+
+**Endpoint:** `GET /chat/05/pack?city={city}`
+**Source:** `chat_05/ToolController.java`, `chat_05/tool/function/FunctionConfiguration.java`, `chat_05/tool/function/WeatherService.java`
+
+### Description
+
+Uses the same `weatherFunction` bean as Demo 05b, but asks a question the tool can't answer directly: _"what should I pack?"_. The model calls the weather tool to get current conditions, then uses those conditions to generate clothing advice in its final answer. This shows how tool results become grounding facts that feed the model's reasoning — unlike Demo 05b where the tool result _is_ the answer, here the tool result is an _input_ to the answer.
+
+### Spring AI Components
+
+- `ChatClient` — fluent API with `.toolNames("weatherFunction")`
+- `FunctionToolCallback` — same bean-registered tool as Demo 05b
+- `returnDirect = false` (default) — the model post-processes the tool result before replying
+
+### Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client as HTTP Client
+    participant Controller as ToolController
+    participant ChatClient as ChatClient
+    participant LLM as AI Provider
+    participant FC as FunctionToolCallback<br/>("weatherFunction")
+    participant WS as WeatherService
+
+    Client->>Controller: GET /chat/05/pack?city=Toronto
+
+    Controller->>ChatClient: .prompt().toolNames("weatherFunction").user("I am traveling to Toronto what kind of clothes should I pack?")
+    ChatClient->>LLM: Send prompt + weatherFunction JSON schema
+
+    Note over LLM: Model recognizes it needs current weather to answer
+    LLM-->>ChatClient: Tool call: weatherFunction({city: "Toronto"})
+    ChatClient->>FC: Invoke callback
+    FC->>WS: getCurrentWeather("Toronto")
+    WS-->>FC: WeatherResponse(city, 12°C, rainy, ...)
+    FC-->>ChatClient: Tool result (JSON)
+
+    ChatClient->>LLM: Send tool result back to model
+    Note over LLM: Model reasons: 12°C rainy → layers + waterproof jacket
+    LLM-->>ChatClient: "For Toronto's 12°C rainy weather, pack a waterproof jacket, layers, and closed shoes."
+    ChatClient-->>Controller: .content() → final answer
+    Controller-->>Client: 200 OK — packing advice
+```
+
+### Key Code
+
+```java
+chatClient.prompt()
+    .toolNames("weatherFunction")
+    .user(u -> u.text("I am traveling to {city} tomorrow, what kind of clothes should I pack?").param("city", city))
+    .call().content();
+```
+
+> **Takeaway:** Tools aren't just "fetch the answer" — they're _grounding sources_ for the model's reasoning. The same `weatherFunction` bean that returns raw weather in Demo 05b is used here as an input signal: the model calls it, interprets the result (temperature, conditions), and produces a _derived_ answer (clothing advice). This is a common tool-calling pattern: tools provide facts, the model provides judgment.
 
 ---
 

@@ -141,7 +141,7 @@ class ToolController {
             u ->
                 u.text(
                         """
-                I am traveling to {city} what kind of clothes should I pack?
+                I am traveling to {city} tomorrow. what kind of clothes should I pack?
                 """)
                     .param("city", city))
         .call()

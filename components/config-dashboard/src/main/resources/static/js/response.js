@@ -312,7 +312,9 @@ function tryEndpoint() {
                             scores.forEach(function(item, idx) {
                                 var score = item.similarity || 0;
                                 var pct = Math.round(score * 100);
-                                var label = item.b || item.a || '';
+                                var a = item.a || '';
+                                var b = item.b || '';
+                                var label = a + '  ↔  ' + b;
                                 var barColor = pct > 80 ? 'var(--spring-green)' : pct > 60 ? '#d4a84a' : '#6b9bd2';
                                 content += '<div class="mb-2 d-flex align-items-center gap-2" style="font-size:13px">';
                                 content += '<div style="min-width:50px;text-align:right;font-family:var(--spring-mono);color:var(--spring-green)">' + score.toFixed(3) + '</div>';

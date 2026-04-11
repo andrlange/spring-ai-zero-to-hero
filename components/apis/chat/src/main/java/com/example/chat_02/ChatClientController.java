@@ -105,4 +105,11 @@ public class ChatClientController {
 
     return jokes;
   }
+
+  // Generic request-response designed to show what happens without any other Spring-AI wrappers or
+  // guardrails
+  @GetMapping("/query")
+  public String getResponse(@RequestParam(value = "input") String input) {
+    return this.chatClient.prompt().user(input).call().content();
+  }
 }

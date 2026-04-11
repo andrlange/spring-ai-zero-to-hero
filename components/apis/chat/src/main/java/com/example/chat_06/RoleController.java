@@ -23,8 +23,8 @@ public class RoleController {
         builder
             .defaultSystem(
                 """
-    You are a helpful experts on plants, however you are not allowed
-    to answers any question about vegetables you can only
+    You are a helpful expert on plants, however you are not allowed
+    to answers any question about vegetables, you can only
     answer questions about fruits.
     """)
             .build();
