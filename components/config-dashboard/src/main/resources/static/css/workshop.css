@@ -10,6 +10,55 @@
     --spring-muted: #9ab89a;
     --spring-font: 'Segoe UI', system-ui, -apple-system, sans-serif;
     --spring-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+
+    /* Code blocks */
+    --spring-code-bg: #0d1117;
+    --spring-code-text: #abb2bf;
+    --spring-bold: #fff;
+    --spring-inline-code-bg: rgba(109, 179, 63, 0.12);
+    --spring-inline-code-border: transparent;
+    --spring-curl-bg: #111;
+
+    /* Modals & overlays */
+    --spring-overlay-bg: rgba(0, 0, 0, 0.75);
+    --spring-modal-shadow: none;
+
+    /* Component-specific */
+    --spring-similarity-track: #2a3838;
+    --spring-mermaid-bg: #1a2332;
+
+    /* JSON syntax */
+    --json-key: #7ee787;
+    --json-string: #a5d6ff;
+    --json-number: #f2cc60;
+    --json-bool: #ff7b72;
+    --json-null: #8b949e;
+
+    /* Highlight.js tokens */
+    --hljs-comment: #6a737d;
+    --hljs-keyword: #c678dd;
+    --hljs-builtin: #e5c07b;
+    --hljs-string: #98c379;
+    --hljs-number: #d19a66;
+    --hljs-meta: #61afef;
+    --hljs-title: #61afef;
+    --hljs-variable: #e06c75;
+    --hljs-symbol: #56b6c2;
+
+    /* Gateway panel */
+    --gateway-bg: #1a1a2e;
+    --gateway-border: #2a2a4a;
+    --gateway-hover: #222244;
+    --gateway-body: #0d0d1a;
+
+    /* Method badges */
+    --method-post-bg: rgba(107, 155, 210, 0.2);
+    --method-post-color: #6b9bd2;
+
+    /* Error states */
+    --error-bg: #3a2020;
+    --error-border: #5a3030;
+    --error-text: #e06c75;
 }
 
 /* ===== Base ===== */
