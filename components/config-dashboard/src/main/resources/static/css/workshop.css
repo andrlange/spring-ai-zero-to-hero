@@ -652,6 +652,47 @@ html, body {
     opacity: 0.6;
 }
 
+/* ===== Theme Toggle ===== */
+.theme-toggle {
+    background: none;
+    border: 1px solid var(--spring-border);
+    color: var(--spring-muted);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.theme-toggle:hover {
+    color: var(--spring-text);
+    border-color: var(--spring-green);
+    background-color: rgba(109, 179, 63, 0.08);
+}
+
+/* Dark mode: show sun icon (click → light), hide moon */
+.theme-icon-dark { display: none; }
+.theme-icon-light { display: inline; }
+
+/* Light mode: show moon icon (click → dark), hide sun */
+[data-theme="light"] .theme-icon-dark { display: inline; }
+[data-theme="light"] .theme-icon-light { display: none; }
+
+/* ===== Theme Transitions ===== */
+.theme-transitions,
+.theme-transitions *,
+.theme-transitions *::before,
+.theme-transitions *::after {
+    transition: background-color 0.2s ease,
+                color 0.2s ease,
+                border-color 0.2s ease,
+                box-shadow 0.2s ease !important;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
     .sidebar {
