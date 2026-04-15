@@ -45,7 +45,7 @@
                     <a th:href="@{/dashboard/stage/{n}(n=${stage.number()})}" class="text-decoration-none">
                         <div class="stage-card" th:style="'border-left-color: ' + ${stage.accentColor()}">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="mb-0 text-light" th:text="${stage.name()}">Stage Name</h5>
+                                <h5 class="mb-0" style="color: var(--spring-text);" th:text="${stage.name()}">Stage Name</h5>
                                 <span class="badge-profile" th:text="${#lists.size(stage.endpoints())} + ' endpoints'">0 endpoints</span>
                             </div>
                             <p class="text-muted small mb-0" th:text="${stage.description()}">Description</p>

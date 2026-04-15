@@ -45,7 +45,7 @@
                                 <span class="method-badge"
                                       th:classappend="${ep.method().toLowerCase()}"
                                       th:text="${ep.method()}">GET</span>
-                                <code class="small text-light" style="font-size: 12px;" th:text="${ep.path()}">/path</code>
+                                <code class="small" style="font-size: 12px; color: var(--spring-text);" th:text="${ep.path()}">/path</code>
                             </div>
                             <div th:if="${!#strings.isEmpty(ep.summary())}" class="text-muted small mt-1" th:text="${ep.summary()}">summary</div>
                         </div>
@@ -118,7 +118,7 @@
                                     <h5 class="modal-title d-flex align-items-center gap-2" style="color:var(--spring-text)">
                                         <i class="bi bi-hdd-network"></i> Gateway <span class="badge bg-secondary" style="font-size:10px">spy</span>
                                     </h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
                                     <div id="modal-gateway-request-meta" class="text-muted small mb-2"></div>
@@ -148,7 +148,7 @@
 <div id="doc-modal" class="doc-modal-overlay" style="display:none" onclick="closeDocModal(event)">
     <div class="doc-modal-content" onclick="event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3 pb-2" style="border-bottom: 1px solid var(--spring-border);">
-            <h5 class="mb-0 text-light"><i class="bi bi-journal-code me-2"></i>Documentation</h5>
+            <h5 class="mb-0" style="color: var(--spring-text);"><i class="bi bi-journal-code me-2"></i>Documentation</h5>
             <button class="btn btn-sm btn-outline-secondary" onclick="closeDocModal()">
                 <i class="bi bi-x-lg"></i>
             </button>

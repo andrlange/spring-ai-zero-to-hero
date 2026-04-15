@@ -5,6 +5,7 @@
 <head th:fragment="head(title)">
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script th:src="@{/js/theme.js}"></script>
     <link rel="stylesheet" th:href="@{/vendor/bootstrap/css/bootstrap.min.css}"/>
     <link rel="stylesheet" th:href="@{/vendor/bootstrap-icons/font/bootstrap-icons.min.css}"/>
     <link rel="stylesheet" th:href="@{/css/workshop.css}"/>
@@ -93,6 +94,10 @@
 <div th:fragment="topbar(pageTitle, provider, profiles)" class="topbar">
     <h1 th:text="${pageTitle}">Page Title</h1>
     <div class="topbar-right">
+        <button id="theme-toggle" class="theme-toggle" title="Toggle light/dark mode">
+            <i class="bi bi-sun-fill theme-icon-light"></i>
+            <i class="bi bi-moon-fill theme-icon-dark"></i>
+        </button>
         <span class="badge-profile" th:text="${provider}" th:if="${provider}">provider</span>
         <th:block th:each="profile : ${profiles}">
             <span class="badge-profile" th:text="${profile}">profile</span>
@@ -113,7 +118,8 @@
     <script th:src="@{/vendor/highlightjs/languages/xml.min.js}"></script>
     <script th:src="@{/vendor/mermaid/mermaid.min.js}"></script>
     <script>
-        mermaid.initialize({ theme: 'dark', startOnLoad: false });
+        var currentTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'default' : 'dark';
+        mermaid.initialize({ theme: currentTheme, startOnLoad: false });
         var docMarked = new marked.Marked();
         docMarked.use({
             breaks: true,
@@ -123,7 +129,8 @@
                     var text = typeof token === 'string' ? token : (token.text || '');
                     var lang = typeof token === 'string' ? '' : (token.lang || '');
                     if (lang === 'mermaid') {
-                        return '<pre class="mermaid">' + text + '</pre>';
+                        var escaped = text.replace(/"/g, '&quot;');
+                        return '<pre class="mermaid" data-original="' + escaped + '">' + text + '</pre>';
                     }
                     try {
                         var highlighted = lang && hljs.getLanguage(lang)
