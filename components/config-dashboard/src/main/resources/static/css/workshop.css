@@ -393,8 +393,8 @@ html, body {
 }
 
 .method-badge.post {
-    background-color: rgba(107, 155, 210, 0.2);
-    color: #6b9bd2;
+    background-color: var(--method-post-bg);
+    color: var(--method-post-color);
 }
 
 /* ===== Param Bar ===== */
@@ -413,7 +413,7 @@ html, body {
 }
 
 .response-text {
-    background-color: #0d1117;
+    background-color: var(--spring-code-bg);
     border-radius: 6px;
     padding: 16px;
     font-family: var(--spring-mono);
@@ -427,7 +427,7 @@ html, body {
 }
 
 .response-json {
-    background-color: #0d1117;
+    background-color: var(--spring-code-bg);
     border-radius: 6px;
     padding: 16px;
     font-family: var(--spring-mono);
@@ -441,15 +441,15 @@ html, body {
 }
 
 /* ===== JSON Syntax Highlighting ===== */
-.json-key { color: #7ee787; }
-.json-string { color: #a5d6ff; }
-.json-number { color: #f2cc60; }
-.json-bool { color: #ff7b72; }
-.json-null { color: #8b949e; }
+.json-key { color: var(--json-key); }
+.json-string { color: var(--json-string); }
+.json-number { color: var(--json-number); }
+.json-bool { color: var(--json-bool); }
+.json-null { color: var(--json-null); }
 
 /* ===== Curl Line ===== */
 .curl-line {
-    background-color: #111;
+    background-color: var(--spring-curl-bg);
     border-radius: 4px;
     padding: 8px 12px;
     font-family: var(--spring-mono);
@@ -473,8 +473,8 @@ html, body {
 
 /* ===== Gateway Panel ===== */
 .gateway-toggle {
-    background-color: #1a1a2e;
-    border: 1px solid #2a2a4a;
+    background-color: var(--gateway-bg);
+    border: 1px solid var(--gateway-border);
     border-radius: 4px;
     padding: 8px 12px;
     cursor: pointer;
@@ -485,12 +485,12 @@ html, body {
     transition: background-color 0.15s;
 }
 .gateway-toggle:hover {
-    background-color: #222244;
+    background-color: var(--gateway-hover);
 }
 
 #gateway-body {
-    background-color: #0d0d1a;
-    border: 1px solid #2a2a4a;
+    background-color: var(--gateway-body);
+    border: 1px solid var(--gateway-border);
     border-top: none;
     border-radius: 0 0 4px 4px;
     padding: 12px;
@@ -571,7 +571,7 @@ html, body {
 .similarity-track {
     flex: 1;
     height: 12px;
-    background-color: var(--spring-border);
+    background-color: var(--spring-similarity-track);
     border-radius: 6px;
     overflow: hidden;
 }
@@ -679,7 +679,7 @@ html, body {
 }
 
 .code-snippet-panel pre {
-    background-color: #0d1117;
+    background-color: var(--spring-code-bg);
     border-radius: 6px;
     padding: 12px;
     margin: 0;
@@ -695,7 +695,7 @@ html, body {
     background: none;
     padding: 0;
     font-size: 13px;
-    color: #abb2bf;
+    color: var(--spring-code-text);
 }
 .code-snippet-panel pre code.hljs {
     background: none;
@@ -706,7 +706,7 @@ html, body {
 .doc-modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.75);
+    background: var(--spring-overlay-bg);
     z-index: 2000;
     display: flex;
     align-items: center;
@@ -719,6 +719,7 @@ html, body {
     border: 1px solid var(--spring-border);
     border-radius: 12px;
     padding: 24px;
+    box-shadow: var(--spring-modal-shadow);
     max-width: 900px;
     width: 100%;
     max-height: 85vh;
@@ -749,16 +750,17 @@ html, body {
 }
 
 .markdown-body code {
-    background-color: rgba(109, 179, 63, 0.12);
+    background-color: var(--spring-inline-code-bg);
     color: var(--spring-green);
     padding: 2px 6px;
     border-radius: 3px;
     font-family: var(--spring-mono);
     font-size: 13px;
+    border: 1px solid var(--spring-inline-code-border);
 }
 
 .markdown-body pre {
-    background-color: #0d1117;
+    background-color: var(--spring-code-bg);
     border-radius: 6px;
     padding: 16px;
     overflow-x: auto;
@@ -767,7 +769,7 @@ html, body {
 
 .markdown-body pre code {
     background: none;
-    color: #abb2bf;
+    color: var(--spring-code-text);
     padding: 0;
 }
 .markdown-body pre code.hljs {
@@ -804,12 +806,12 @@ html, body {
 }
 
 .markdown-body strong {
-    color: #fff;
+    color: var(--spring-bold);
 }
 
 /* Mermaid diagrams */
 .markdown-body .mermaid {
-    background-color: #1a2332;
+    background-color: var(--spring-mermaid-bg);
     border-radius: 8px;
     padding: 16px;
     margin: 12px 0;
@@ -818,19 +820,19 @@ html, body {
 
 /* ===== Highlight.js Syntax Theme (Atom One Dark) ===== */
 pre code.hljs { display: block; overflow-x: auto; }
-.hljs { color: #abb2bf; background: #0d1117; }
-.hljs .hljs-comment, .hljs .hljs-quote { color: #6a737d !important; font-style: italic; }
-.hljs .hljs-keyword, .hljs .hljs-selector-tag, .hljs .hljs-type { color: #c678dd !important; font-weight: bold; }
-.hljs .hljs-built_in { color: #e5c07b !important; }
-.hljs .hljs-string, .hljs .hljs-doctag, .hljs .hljs-regexp { color: #98c379 !important; }
-.hljs .hljs-number, .hljs .hljs-literal { color: #d19a66 !important; }
-.hljs .hljs-meta, .hljs .hljs-meta .hljs-keyword, .hljs .hljs-meta .hljs-string { color: #61afef !important; }
-.hljs .hljs-title, .hljs .hljs-title.class_, .hljs .hljs-title.function_ { color: #61afef !important; }
-.hljs .hljs-variable, .hljs .hljs-attr, .hljs .hljs-params { color: #e06c75 !important; }
-.hljs .hljs-symbol, .hljs .hljs-bullet { color: #56b6c2 !important; }
-.hljs .hljs-tag, .hljs .hljs-name { color: #e06c75 !important; }
-.hljs .hljs-attribute { color: #d19a66 !important; }
-.hljs .hljs-section { color: #61afef !important; font-weight: bold; }
-.hljs .hljs-addition { color: #98c379 !important; background-color: rgba(152,195,121,0.1); }
-.hljs .hljs-deletion { color: #e06c75 !important; background-color: rgba(224,108,117,0.1); }
-.hljs .hljs-property { color: #e06c75 !important; }
+.hljs { color: var(--spring-code-text); background: var(--spring-code-bg); }
+.hljs .hljs-comment, .hljs .hljs-quote { color: var(--hljs-comment) !important; font-style: italic; }
+.hljs .hljs-keyword, .hljs .hljs-selector-tag, .hljs .hljs-type { color: var(--hljs-keyword) !important; font-weight: bold; }
+.hljs .hljs-built_in { color: var(--hljs-builtin) !important; }
+.hljs .hljs-string, .hljs .hljs-doctag, .hljs .hljs-regexp { color: var(--hljs-string) !important; }
+.hljs .hljs-number, .hljs .hljs-literal { color: var(--hljs-number) !important; }
+.hljs .hljs-meta, .hljs .hljs-meta .hljs-keyword, .hljs .hljs-meta .hljs-string { color: var(--hljs-meta) !important; }
+.hljs .hljs-title, .hljs .hljs-title.class_, .hljs .hljs-title.function_ { color: var(--hljs-title) !important; }
+.hljs .hljs-variable, .hljs .hljs-attr, .hljs .hljs-params { color: var(--hljs-variable) !important; }
+.hljs .hljs-symbol, .hljs .hljs-bullet { color: var(--hljs-symbol) !important; }
+.hljs .hljs-tag, .hljs .hljs-name { color: var(--hljs-variable) !important; }
+.hljs .hljs-attribute { color: var(--hljs-number) !important; }
+.hljs .hljs-section { color: var(--hljs-title) !important; font-weight: bold; }
+.hljs .hljs-addition { color: var(--hljs-string) !important; background-color: rgba(152,195,121,0.1); }
+.hljs .hljs-deletion { color: var(--hljs-variable) !important; background-color: rgba(224,108,117,0.1); }
+.hljs .hljs-property { color: var(--hljs-variable) !important; }
