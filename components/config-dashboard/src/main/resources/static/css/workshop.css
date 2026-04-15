@@ -61,6 +61,58 @@
     --error-text: #e06c75;
 }
 
+/* ===== Light Theme ===== */
+[data-theme="light"] {
+    --spring-green: #3d7a1c;
+    --spring-green-dark: #2b6314;
+    --spring-bg: #ffffff;
+    --spring-card: #f8faf6;
+    --spring-border: #d4ddd0;
+    --spring-text: #24292f;
+    --spring-muted: #5a7a4a;
+
+    --spring-code-bg: #f6f8fa;
+    --spring-code-text: #24292f;
+    --spring-bold: #1a2e0a;
+    --spring-inline-code-bg: rgba(61, 122, 28, 0.08);
+    --spring-inline-code-border: rgba(61, 122, 28, 0.15);
+    --spring-curl-bg: #f0f3ed;
+
+    --spring-overlay-bg: rgba(0, 0, 0, 0.4);
+    --spring-modal-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+    --spring-similarity-track: #e8ede4;
+    --spring-mermaid-bg: #f6f8fa;
+
+    --json-key: #2b6314;
+    --json-string: #0a3069;
+    --json-number: #953800;
+    --json-bool: #cf222e;
+    --json-null: #6e7781;
+
+    --hljs-comment: #6e7781;
+    --hljs-keyword: #8250df;
+    --hljs-builtin: #953800;
+    --hljs-string: #0a3069;
+    --hljs-number: #953800;
+    --hljs-meta: #0550ae;
+    --hljs-title: #0550ae;
+    --hljs-variable: #24292f;
+    --hljs-symbol: #0550ae;
+
+    --gateway-bg: #f0f0fa;
+    --gateway-border: #d0d0e0;
+    --gateway-hover: #e8e8f4;
+    --gateway-body: #f6f6fc;
+
+    --method-post-bg: rgba(74, 127, 181, 0.12);
+    --method-post-color: #0550ae;
+
+    --error-bg: #fff0f0;
+    --error-border: #e0c0c0;
+    --error-text: #cf222e;
+}
+
 /* ===== Base ===== */
 html, body {
     height: 100%;
