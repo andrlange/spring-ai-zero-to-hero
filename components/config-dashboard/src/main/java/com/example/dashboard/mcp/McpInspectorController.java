@@ -17,6 +17,8 @@ public class McpInspectorController {
   private final McpDemoCatalog catalog;
   private final McpClientRegistry registry;
   private final McpStdioInvoker stdio;
+  private final org.springframework.web.client.RestClient restClient =
+      org.springframework.web.client.RestClient.create();
 
   public McpInspectorController(
       McpDemoCatalog catalog, McpClientRegistry registry, McpStdioInvoker stdio) {
@@ -142,6 +144,23 @@ public class McpInspectorController {
                   new io.modelcontextprotocol.spec.McpSchema.GetPromptRequest(body.name(), args)));
     } catch (Exception e) {
       return offlineResponse(id, demo, e);
+    }
+  }
+
+  @org.springframework.web.bind.annotation.PostMapping("/04/update-tools")
+  public ResponseEntity<?> trigger04Update() {
+    McpDemo demo = catalog.get("04");
+    try {
+      String response =
+          restClient
+              .get()
+              .uri("http://localhost:" + demo.port() + "/updateTools")
+              .retrieve()
+              .body(String.class);
+      registry.reset("04");
+      return ResponseEntity.ok(Map.of("signal", response == null ? "" : response));
+    } catch (Exception e) {
+      return offlineResponse("04", demo, e);
     }
   }
 

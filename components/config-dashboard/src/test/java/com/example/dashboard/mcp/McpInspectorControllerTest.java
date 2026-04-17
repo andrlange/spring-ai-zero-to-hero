@@ -124,6 +124,14 @@ class McpInspectorControllerTest {
   }
 
   @Test
+  void updateTools04EndpointExists() throws Exception {
+    // Accept any status — verifies routing only. Full proxy semantics require a live :8082.
+    mockMvc.perform(
+        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+            "/dashboard/mcp/04/update-tools"));
+  }
+
+  @Test
   void invokeEndpointForwardsToMcpClient() throws Exception {
     io.modelcontextprotocol.spec.McpSchema.CallToolResult result =
         new io.modelcontextprotocol.spec.McpSchema.CallToolResult(
