@@ -72,7 +72,7 @@ public class ClientApplication {
           RestClient.builder()
               .build()
               .get()
-              .uri("http://localhost:8080/updateTools")
+              .uri("http://localhost:8082/updateTools")
               .retrieve()
               .body(String.class);
       logger.info("Server tool update response: " + signal);

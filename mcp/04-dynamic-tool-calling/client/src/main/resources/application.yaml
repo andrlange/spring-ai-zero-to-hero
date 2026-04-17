@@ -8,6 +8,6 @@ spring:
         http:
           connections:
             04-dynamic-tool-calling:
-              url: http://localhost:8080
+              url: http://localhost:8082
   config:
     import: "optional:classpath:/creds.yaml"
