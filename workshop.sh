@@ -199,6 +199,109 @@ mcp_stop_demo() {
     rm -f "${pid_file}"
 }
 
+mcp_status_table() {
+    header "MCP demo status"
+    printf "  %-4s %-34s %-6s %-7s %s\n" "ID" "Demo" "Port" "Up?" "PID"
+    printf "  %-4s %-34s %-6s %-7s %s\n" "──" "──────────────────────────────" "────" "───" "─────"
+    for id in "${MCP_ALL_DEMOS[@]}"; do
+        local port="${MCP_PORTS[$id]:-n/a}"
+        local label="${MCP_LABELS[$id]:-?}"
+        local pid_file
+        pid_file=$(mcp_pid_file "${id}")
+        local pid="—"
+        [ -f "${pid_file}" ] && pid=$(cat "${pid_file}")
+        local up="—"
+        if [ "${id}" = "01" ]; then
+            mcp_stdio_jar_present && up="jar ✓" || up="jar ✗"
+            port="stdio"
+        else
+            mcp_is_up "${id}" && up="✓" || up="✗"
+        fi
+        printf "  %-4s %-34s %-6s %-7s %s\n" "${id}" "${label}" "${port}" "${up}" "${pid}"
+    done
+    echo ""
+}
+
+cmd_mcp() {
+    local action="${1:-}"
+    shift || true
+
+    case "${action}" in
+        start)
+            if [ $# -eq 0 ]; then
+                fail "Usage: ./workshop.sh mcp start <id>|all"
+                return 1
+            fi
+            for target in "$@"; do
+                case "${target}" in
+                    all)
+                        mcp_build_01_jar
+                        for id in "${MCP_DEMOS[@]}"; do mcp_start_demo "${id}" || true; done
+                        ;;
+                    01)
+                        mcp_build_01_jar
+                        ;;
+                    02|04|05)
+                        mcp_start_demo "${target}"
+                        ;;
+                    *)
+                        fail "Unknown MCP id: ${target} (expected 01|02|04|05|all)"
+                        ;;
+                esac
+            done
+            ;;
+        stop)
+            if [ $# -eq 0 ]; then
+                fail "Usage: ./workshop.sh mcp stop <id>|all"
+                return 1
+            fi
+            for target in "$@"; do
+                case "${target}" in
+                    all) for id in "${MCP_DEMOS[@]}"; do mcp_stop_demo "${id}"; done ;;
+                    02|04|05) mcp_stop_demo "${target}" ;;
+                    01) info "01 is STDIO — nothing to stop (no long-running process)" ;;
+                    *) fail "Unknown MCP id: ${target}" ;;
+                esac
+            done
+            ;;
+        status)
+            mcp_status_table
+            ;;
+        logs)
+            local id="${1:-}"
+            if [ -z "${id}" ]; then
+                fail "Usage: ./workshop.sh mcp logs <id>"
+                return 1
+            fi
+            local log_file
+            log_file=$(mcp_log_file "${id}")
+            if [ ! -f "${log_file}" ]; then
+                fail "No log file for MCP ${id} at ${log_file}"
+                return 1
+            fi
+            tail -f "${log_file}"
+            ;;
+        build-01)
+            mcp_build_01_jar
+            ;;
+        "")
+            echo "Usage: ./workshop.sh mcp <start|stop|status|logs|build-01> [args]"
+            echo ""
+            echo "Examples:"
+            echo "  ./workshop.sh mcp start all          Build 01 jar, start 02/04/05"
+            echo "  ./workshop.sh mcp start 02           Start only 02"
+            echo "  ./workshop.sh mcp stop all           Stop 02/04/05"
+            echo "  ./workshop.sh mcp status             Show demo table"
+            echo "  ./workshop.sh mcp logs 04            Tail 04's log"
+            echo "  ./workshop.sh mcp build-01           Build the STDIO jar"
+            ;;
+        *)
+            fail "Unknown mcp subcommand: ${action}"
+            return 1
+            ;;
+    esac
+}
+
 # ── Credential check helpers ────────────────────────────────
 # Returns 0 if provider has a configured (non-placeholder) creds.yaml
 provider_has_creds() {
