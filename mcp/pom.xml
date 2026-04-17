@@ -11,9 +11,9 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
-		<module>01-basic-stdio-mcp-server</module>
-		<module>02-basic-http-mcp-server</module>
-		<module>03-basic-mcp-client</module>
+		<module>01-mcp-stdio-server</module>
+		<module>02-mcp-http-server</module>
+		<module>03-mcp-client</module>
 		<module>04-dynamic-tool-calling</module>
 		<module>05-mcp-capabilities</module>
 	</modules>
