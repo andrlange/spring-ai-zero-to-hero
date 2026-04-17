@@ -28,8 +28,9 @@
 
             <!-- Demo cards -->
             <div id="mcp-cards" class="d-flex flex-column gap-3 mb-3">
-                <div th:each="demo : ${demos}"
-                     th:replace="~{fragments/mcp-card :: card(${demo})}"></div>
+                <th:block th:each="demo : ${demos}">
+                    <div th:replace="~{fragments/mcp-card :: card(${demo})}"></div>
+                </th:block>
             </div>
 
             <!-- Inspector panel -->
