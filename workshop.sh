@@ -1524,6 +1524,9 @@ main() {
                     ;;
             esac
             ;;
+        mcp)
+            cmd_mcp "$@"
+            ;;
         start)
             local provider="${1:-}"
             local profiles=""
