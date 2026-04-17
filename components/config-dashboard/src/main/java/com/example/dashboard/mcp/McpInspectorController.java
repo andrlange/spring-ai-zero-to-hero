@@ -49,6 +49,28 @@ public class McpInspectorController {
     return ResponseEntity.ok(body);
   }
 
+  public record InvokeRequest(String tool, Map<String, Object> args) {}
+
+  @org.springframework.web.bind.annotation.PostMapping("/{id}/invoke")
+  public ResponseEntity<?> invoke(
+      @PathVariable String id,
+      @org.springframework.web.bind.annotation.RequestBody InvokeRequest body) {
+    McpDemo demo = catalog.get(id);
+    Map<String, Object> args = body.args() == null ? Map.of() : body.args();
+    try {
+      if (demo.port() == null) {
+        return ResponseEntity.ok(stdio.callTool(body.tool(), args));
+      }
+      return ResponseEntity.ok(
+          registry
+              .getOrConnect(id)
+              .callTool(
+                  new io.modelcontextprotocol.spec.McpSchema.CallToolRequest(body.tool(), args)));
+    } catch (Exception e) {
+      return offlineResponse(id, demo, e);
+    }
+  }
+
   @GetMapping("/{id}/tools")
   public ResponseEntity<?> tools(@PathVariable String id) {
     McpDemo demo = catalog.get(id);

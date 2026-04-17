@@ -98,4 +98,23 @@ class McpInspectorControllerTest {
         .andExpect(jsonPath("$.error").value("server offline"))
         .andExpect(jsonPath("$.hint").value("./workshop.sh mcp start 02"));
   }
+
+  @Test
+  void invokeEndpointForwardsToMcpClient() throws Exception {
+    io.modelcontextprotocol.spec.McpSchema.CallToolResult result =
+        new io.modelcontextprotocol.spec.McpSchema.CallToolResult(
+            java.util.List.of(), false, null, null);
+    io.modelcontextprotocol.client.McpSyncClient client =
+        org.mockito.Mockito.mock(io.modelcontextprotocol.client.McpSyncClient.class);
+    when(client.callTool(org.mockito.ArgumentMatchers.any())).thenReturn(result);
+    when(registry.getOrConnect("02")).thenReturn(client);
+
+    mockMvc
+        .perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                    "/dashboard/mcp/02/invoke")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content("{\"tool\":\"getTemperature\",\"args\":{\"latitude\":52.5}}"))
+        .andExpect(status().isOk());
+  }
 }
