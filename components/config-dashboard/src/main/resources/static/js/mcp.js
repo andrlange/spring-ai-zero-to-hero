@@ -53,7 +53,8 @@
         setInspectorLoading('Listing tools for MCP ' + id + '…');
         fetch('/dashboard/mcp/' + id + '/tools')
             .then(function(r) { return r.json().then(function(body) { return { ok: r.ok, body: body }; }); })
-            .then(function(res) { renderInspector(res, 'Tools'); });
+            .then(function(res) { renderInspector(res, 'Tools'); })
+            .catch(function(e) { renderInspector({ ok: false, body: { error: String(e && e.message || e) } }, 'Tools'); });
     };
 
     window.mcpListResources = function(btn) {
@@ -61,7 +62,8 @@
         setInspectorLoading('Listing resources for MCP ' + id + '…');
         fetch('/dashboard/mcp/' + id + '/resources')
             .then(function(r) { return r.json().then(function(body) { return { ok: r.ok, body: body }; }); })
-            .then(function(res) { renderInspector(res, 'Resources'); });
+            .then(function(res) { renderInspector(res, 'Resources'); })
+            .catch(function(e) { renderInspector({ ok: false, body: { error: String(e && e.message || e) } }, 'Resources'); });
     };
 
     window.mcpListPrompts = function(btn) {
@@ -69,25 +71,24 @@
         setInspectorLoading('Listing prompts for MCP ' + id + '…');
         fetch('/dashboard/mcp/' + id + '/prompts')
             .then(function(r) { return r.json().then(function(body) { return { ok: r.ok, body: body }; }); })
-            .then(function(res) { renderInspector(res, 'Prompts'); });
+            .then(function(res) { renderInspector(res, 'Prompts'); })
+            .catch(function(e) { renderInspector({ ok: false, body: { error: String(e && e.message || e) } }, 'Prompts'); });
     };
 
     window.mcp04Trigger = function(btn) {
         setInspectorLoading('Triggering dynamic registration on MCP 04…');
         fetch('/dashboard/mcp/04/update-tools', { method: 'POST' })
             .then(function(r) { return r.json().then(function(body) { return { ok: r.ok, body: body }; }); })
-            .then(function(res) {
-                renderInspector(res, 'Dynamic registration');
-                btn.disabled = true;
-                btn.textContent = '✓ Already registered';
-            });
+            .then(function(res) { renderInspector(res, 'Dynamic registration'); })
+            .catch(function(e) { renderInspector({ ok: false, body: { error: String(e && e.message || e) } }, 'Dynamic registration'); });
     };
 
     window.mcp03Run = function(mode) {
         setInspectorLoading('Running MCP client demo in ' + mode + ' mode…');
         fetch('/dashboard/mcp/03/run?mode=' + encodeURIComponent(mode), { method: 'POST' })
             .then(function(r) { return r.json().then(function(body) { return { ok: r.ok, body: body }; }); })
-            .then(function(res) { renderInspector(res, 'MCP Client demo (' + mode + ')'); });
+            .then(function(res) { renderInspector(res, 'MCP Client demo (' + mode + ')'); })
+            .catch(function(e) { renderInspector({ ok: false, body: { error: String(e && e.message || e) } }, 'MCP Client demo (' + mode + ')'); });
     };
 
     window.mcpShowDocs = function(id) {

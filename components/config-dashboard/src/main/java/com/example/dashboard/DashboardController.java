@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
@@ -36,8 +37,7 @@ public class DashboardController {
       Environment environment,
       RestClient.Builder restClientBuilder,
       DocMappingService docMappingService,
-      @org.springframework.beans.factory.annotation.Autowired(required = false)
-          com.example.dashboard.mcp.McpDemoCatalog mcpCatalog,
+      @Autowired(required = false) McpDemoCatalog mcpCatalog,
       @Value("${server.port:8080}") int port) {
     this.specReader = specReader;
     this.environment = environment;
