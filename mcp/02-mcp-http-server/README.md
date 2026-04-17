@@ -60,7 +60,7 @@ The server uses Streamable HTTP transport mode and needs to be started separatel
 ./mvnw clean install -DskipTests
 
 # Run the server
-java -jar target/02-basic-http-mcp-server-0.0.1-SNAPSHOT.jar
+java -jar target/02-mcp-http-server-0.0.1-SNAPSHOT.jar
 ```
 
 The server will start on port 8080 by default.
@@ -132,7 +132,7 @@ The MCP server can be integrated with CLINE, allowing the AI assistant to access
 #### Start the MCP Server
 
 ```
-./mvnw spring-boot:run -pl mcp/02-basic-http-mcp-server/
+./mvnw spring-boot:run -pl mcp/02-mcp-http-server/
 ```
 
 #### Adding the MCP Server to CLINE
@@ -141,7 +141,7 @@ The MCP server can be integrated with CLINE, allowing the AI assistant to access
 2. In CLINE, navigate to the MCP Servers section
 3. Select the "Remote Servers" tab
 4. Enter the following information:
-   - Server Name: `02-basic-http-mcp-server`
+   - Server Name: `02-mcp-http-server`
    - Server URL: `http://localhost:8080/mcp`
 5. Click "Add Server"
 
@@ -152,7 +152,7 @@ The MCP server can be integrated with CLINE, allowing the AI assistant to access
 Once connected, you can view the available tools:
 
 1. Navigate to the "Installed" tab in the MCP Servers section
-2. Expand the `02-basic-http-mcp-server` entry
+2. Expand the `02-mcp-http-server` entry
 3. Select the "Tools" tab to see the available tools
 4. You'll see the `getTemperature` tool with its description and required parameters:
    - `latitude`: The location latitude (number)
@@ -236,7 +236,7 @@ WeatherResponse response =
 
 ## Differences from STDIO Server
 
-The main differences between this HTTP server and the STDIO server (01-basic-stdio-mcp-server) are:
+The main differences between this HTTP server and the STDIO server (01-mcp-stdio-server) are:
 
 1. **Transport Layer**:
    - This server uses Streamable HTTP transport via Spring WebMVC

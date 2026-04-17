@@ -103,7 +103,7 @@ ServerParameters stdioParams = ServerParameters.builder("java")
           "-Dspring.main.web-application-type=none",
           "-Dlogging.pattern.console=", 
           "-jar",
-          "mcp/01-basic-stdio-mcp-server/target/01-basic-stdio-mcp-server-0.0.1-SNAPSHOT.jar")
+          "mcp/01-mcp-stdio-server/target/01-mcp-stdio-server-0.0.1-SNAPSHOT.jar")
     .build();
 
 // Initialize transport and client
@@ -147,7 +147,7 @@ To integrate with Claude Desktop, add the following configuration to your Claude
         "-Dspring.main.web-application-type=none",
         "-Dlogging.pattern.console=",
         "-jar",
-        "/absolute/path/to/01-basic-stdio-mcp-server-0.0.1-SNAPSHOT.jar"
+        "/absolute/path/to/01-mcp-stdio-server-0.0.1-SNAPSHOT.jar"
       ]
     }
   }

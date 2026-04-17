@@ -90,7 +90,7 @@ server:
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "./mcp/03-basic-mcp-client/target"
+        "./mcp/03-mcp-client/target"
       ]
     }
   }
@@ -138,7 +138,7 @@ public class BasicMcpClientApplication {
       String userQuestion =
           """
             Does the Spring IO 2025 conference has a sessions about the Srping AI and Model Context Protocol (MCP)? 
-            Please provide references and write a summary as a summary.md file in the mcp/03-basic-mcp-client/target directory.
+            Please provide references and write a summary as a summary.md file in the mcp/03-mcp-client/target directory.
             """;
 
       System.out.println("\n\nQuestion: \n" + userQuestion);

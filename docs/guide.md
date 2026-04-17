@@ -31,9 +31,9 @@ spring-ai-zero-to-hero/
 |   +-- data/                   <-- Shared datasets (bikes, customers, products, orders)
 |
 +-- mcp/                        <-- Model Context Protocol demos
-|   +-- 01-basic-stdio-mcp-server/
-|   +-- 02-basic-http-mcp-server/
-|   +-- 03-basic-mcp-client/
+|   +-- 01-mcp-stdio-server/
+|   +-- 02-mcp-http-server/
+|   +-- 03-mcp-client/
 |   +-- 04-dynamic-tool-calling/
 |   +-- 05-mcp-capabilities/
 |
