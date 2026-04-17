@@ -305,67 +305,140 @@ spring:
 ## Demo 03 — MCP Client
 
 **Module:** `mcp/03-mcp-client/`
-**Source:** `BasicMcpClientApplication.java`
+**Source:** `BasicMcpClientApplication.java`, `McpClientDemoRunner.java`
 
 **Dashboard endpoints:**
-- `POST /dashboard/mcp/03/run?mode=local|external`
-- `GET /dashboard/mcp/03/status` — informational only (03 is a CLI, not a server)
+- `POST /dashboard/mcp/03/run?mode=local` — runs the demo against whichever of 01 (STDIO) and 02 (HTTP) are currently live. Tool callbacks are assembled on-demand from those servers.
+- `GET /dashboard/mcp/03/status` — informational only (03 is a CLI, not a server).
+
+> **External mode is CLI-only.** The dashboard's `/03/run` endpoint accepts only `mode=local`. Running against external MCP servers (Brave Search + filesystem, via `npx` subprocesses) is not supported from the UI and returns HTTP 400 pointing at the CLI command. See [External mode (CLI)](#external-mode-cli) below.
 
 ### Description
 
-An MCP client that connects to external MCP servers (Brave Search, filesystem) via STDIO, discovers their tools, and makes them available to `ChatClient`. The client uses `ToolCallbackProvider` to inject discovered tools into the AI conversation — the model can then call these remote tools.
+An MCP client that connects to MCP servers, discovers their tools, and exposes them to a `ChatClient` via `ToolCallbackProvider`. From the model's perspective the tools look like local Java methods — MCP is the transport.
+
+Demo 03 ships two configurations:
+
+| Mode | Servers | Config file | Runnable from |
+|------|---------|-------------|---------------|
+| **local** (default) | 01 STDIO jar + 02 HTTP :8081 | `mcp-servers-local.json` | CLI + Dashboard |
+| **external** | Brave Search + filesystem (via `npx`) | `mcp-servers-external.json` | CLI only (profile `mcp-external`) |
 
 ### Spring AI Components
 
-- `ChatClient` — fluent API with `.toolCallbacks()` for MCP tool injection
-- `ToolCallbackProvider` — auto-configured with tools from connected MCP servers
-- MCP server connections configured via `mcp-servers-config.json`
+- `ChatClient` — fluent API with `.toolCallbacks(...)` for MCP tool injection
+- `ToolCallbackProvider` — auto-configured from classpath MCP client connections (CLI) **or** constructed on-demand from live `McpSyncClient` instances via `SyncMcpToolCallbackProvider` (Dashboard)
+- `McpClientDemoRunner` — reusable bean extracted from the CLI's `CommandLineRunner`, called by either the CLI runner or the dashboard handler
 
-### Flow Diagram
+### Flow Diagram — local mode (default)
 
 ```mermaid
 sequenceDiagram
-    participant App as MCP Client App
-    participant MCP as MCP Server<br/>(Brave Search via STDIO)
+    participant App as 03 MCP Client
+    participant Stdio as 01 STDIO Server<br/>(subprocess)
+    participant Http as 02 HTTP Server<br/>(:8081)
     participant ChatClient as ChatClient
-    participant LLM as OpenAI
+    participant LLM as Provider (OpenAI/Ollama/…)
 
-    Note over App,MCP: Startup: auto-connect to MCP servers
-    App->>MCP: initialize (via subprocess stdin)
-    MCP-->>App: capabilities + tools list
-    App->>App: ToolCallbackProvider populated with remote tools
+    Note over App,Http: Startup: auto-connect to local MCP servers
+    App->>Stdio: spawn jar, initialize (stdin/stdout)
+    Stdio-->>App: tools list (getTemperature)
+    App->>Http: POST /mcp initialize
+    Http-->>App: tools list (getTemperature)
 
-    Note over App,LLM: Runtime: use remote tools in chat
-    App->>ChatClient: .prompt().system("...").user("Does Spring IO 2025 have MCP sessions?")
-    App->>ChatClient: .toolCallbacks(tools.getToolCallbacks())
-    ChatClient->>LLM: Send prompt + tool definitions
-
-    LLM-->>ChatClient: Tool call: brave_web_search({query: "Spring IO 2025 MCP"})
-    ChatClient->>MCP: Forward tool call to MCP server
-    MCP-->>ChatClient: Search results
-    ChatClient->>LLM: Tool result
-    LLM-->>ChatClient: "Yes, Spring IO 2025 has MCP sessions about..."
+    Note over App,LLM: Runtime
+    App->>ChatClient: .prompt().system("…").user("Temperature in Berlin?")
+    App->>ChatClient: .toolCallbacks(provider)
+    ChatClient->>LLM: prompt + merged tool definitions
+    LLM-->>ChatClient: tool call: getTemperature(lat, lon)
+    ChatClient->>Http: forward tool call
+    Http-->>ChatClient: { temperatureCelsius: 8.9, … }
+    ChatClient->>LLM: tool result
+    LLM-->>ChatClient: "Berlin is currently 8.9°C"
     ChatClient-->>App: response
 ```
 
-### Key Code
+### Key Code — the reusable runner
 
 ```java
-@Bean
-CommandLineRunner chatbot(ChatClient.Builder chatClientBuilder, ToolCallbackProvider tools) {
-    return args -> {
-        var chatClient = chatClientBuilder.build();
-        String response = chatClient.prompt()
-            .system("You are useful assistant and can perform web searches")
-            .user("Does Spring IO 2025 have MCP sessions?")
-            .toolCallbacks(tools.getToolCallbacks())
-            .call().content();
-        logger.info("Response: {}", response);
-    };
+@Component
+public class McpClientDemoRunner {
+  private final ChatClient.Builder chatClientBuilder;
+  private final ToolCallbackProvider tools;
+
+  public Result run(String mode) {
+    String question = "external".equals(mode) ? "Does Spring IO 2025 have MCP sessions?"
+                                              : "Temperature in Berlin?";
+    String response = chatClientBuilder.build().prompt()
+        .system("You are a useful assistant that can call MCP tools.")
+        .user(question)
+        .toolCallbacks(tools)
+        .call().content();
+    return new Result(mode, question, response);
+  }
 }
 ```
 
-**MCP servers configuration** (`mcp-servers-config.json`):
+**CLI entry point** (`BasicMcpClientApplication.java`) — thin `CommandLineRunner` that reads `MCP_DEMO_MODE` env var and delegates:
+
+```java
+@Bean
+public CommandLineRunner chatbot(McpClientDemoRunner runner) {
+  return args -> {
+    String mode = System.getenv("MCP_DEMO_MODE");
+    if (mode == null || mode.isBlank()) mode = "local";
+    runner.run(mode);
+  };
+}
+```
+
+**Dashboard path** (`McpInspectorController#run03`) — does NOT rely on the autowired `ToolCallbackProvider`. Instead it inspects which MCP servers are live via `McpClientRegistry` + `McpStdioInvoker`, assembles a `List<McpSyncClient>`, and constructs a `SyncMcpToolCallbackProvider` fresh per request. STDIO subprocess is closed in `finally`.
+
+### Local config — `mcp-servers-local.json`
+
+```json
+{
+  "mcpServers": {
+    "local-stdio": {
+      "command": "java",
+      "args": [
+        "-Dspring.ai.mcp.server.stdio=true",
+        "-Dspring.main.web-application-type=none",
+        "-Dlogging.pattern.console=",
+        "-jar", "mcp/01-mcp-stdio-server/target/01-mcp-stdio-server-0.0.1-SNAPSHOT.jar"
+      ]
+    }
+  }
+}
+```
+
+Plus a Streamable HTTP connection to 02 in `application.yaml`:
+
+```yaml
+spring:
+  ai:
+    mcp:
+      client:
+        stdio:
+          servers-configuration: classpath:/mcp-servers-local.json
+        http:
+          connections:
+            local-http:
+              url: http://localhost:8081
+```
+
+### External mode (CLI)
+
+For the full MCP ecosystem experience (Brave Search, filesystem), activate the `mcp-external` profile:
+
+```bash
+export BRAVE_API_KEY=...         # required
+./mvnw spring-boot:run -pl mcp/03-mcp-client \
+    -Dspring-boot.run.profiles=mcp-external
+```
+
+Config (`mcp-servers-external.json`):
+
 ```json
 {
   "mcpServers": {
@@ -381,7 +454,9 @@ CommandLineRunner chatbot(ChatClient.Builder chatClientBuilder, ToolCallbackProv
 }
 ```
 
-> **Takeaway:** MCP clients treat remote tools the same as local tools. `ToolCallbackProvider` abstracts the source — the `ChatClient` doesn't know whether a tool runs locally or on a remote MCP server. This is the power of MCP: plug any tool ecosystem into any AI application.
+This mode is CLI-only: the dashboard can't spawn `npx` subprocesses for arbitrary external servers, and reaching those servers requires creds (`BRAVE_API_KEY`) the dashboard doesn't manage.
+
+> **Takeaway:** MCP clients treat tools from any server the same way — the `ChatClient.toolCallbacks(...)` API doesn't care whether a tool lives in a local STDIO subprocess, a local HTTP server, or an external npx-spawned service. Swapping between local and external is purely a config change. This is the power of MCP: plug any tool ecosystem into any AI application.
 
 ---
 
