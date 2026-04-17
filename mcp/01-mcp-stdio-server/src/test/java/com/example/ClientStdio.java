@@ -37,7 +37,7 @@ public class ClientStdio {
                 "-Dspring.main.web-application-type=none",
                 "-Dlogging.pattern.console=",
                 "-jar",
-                "mcp/01-basic-stdio-mcp-server/target/01-basic-stdio-mcp-server-0.0.1-SNAPSHOT.jar")
+                "mcp/01-mcp-stdio-server/target/01-mcp-stdio-server-0.0.1-SNAPSHOT.jar")
             .build();
 
     var client =
