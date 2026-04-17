@@ -252,24 +252,42 @@
     };
 
     function renderResourcesList(demoId, body) {
-        var items = (body && (body.resources || body.resourceTemplates)) || [];
+        // Merge concrete resources + URI templates into one rendered list.
+        // Templates (user-profile://{username}) are what 05 actually exposes;
+        // concrete resources may be absent.
+        var concrete = (body && Array.isArray(body.resources)) ? body.resources : [];
+        var templates = (body && Array.isArray(body.resourceTemplates)) ? body.resourceTemplates : [];
+        var items = concrete.map(function(r) { return { kind: 'resource', item: r }; })
+            .concat(templates.map(function(t) { return { kind: 'template', item: t }; }));
+
         if (!items.length) {
-            document.getElementById('mcp-modal-body').innerHTML = '<p class="text-muted">No resources reported.</p>';
+            document.getElementById('mcp-modal-body').innerHTML = '<p class="text-muted">No resources or templates reported.</p>';
             return;
         }
-        var html = '<p class="text-muted small mb-3">' + items.length + ' resource' +
-            (items.length === 1 ? '' : 's') + ' advertised by MCP ' + escapeHtml(demoId) +
-            '. Fill in a URI to read one.</p>';
-        items.forEach(function(item, idx) {
+        var html = '<p class="text-muted small mb-3">' +
+            concrete.length + ' concrete resource' + (concrete.length === 1 ? '' : 's') + ', ' +
+            templates.length + ' URI template' + (templates.length === 1 ? '' : 's') +
+            ' advertised by MCP ' + escapeHtml(demoId) +
+            '. Concrete resources are fixed URIs; templates have {placeholders} you fill in before reading.</p>';
+
+        items.forEach(function(entry, idx) {
             var uid = 'res-' + demoId + '-' + idx;
+            var item = entry.item || {};
             var uri = item.uriTemplate || item.uri || '';
+            var kindLabel = entry.kind === 'template'
+                ? '<span class="badge-profile" style="background:#6b9bd2;color:#fff">template</span>'
+                : '<span class="badge-profile" style="background:var(--spring-green);color:#fff">resource</span>';
             html += cardOpen();
-            html += '<h6 class="mb-1" style="color:var(--spring-text)"><code>' + escapeHtml(uri) + '</code></h6>';
+            html += '<div class="d-flex align-items-center gap-2 mb-1">';
+            html += kindLabel;
+            html += '<code style="color:var(--spring-text)">' + escapeHtml(uri) + '</code>';
+            html += '</div>';
             html += '<p class="text-muted small mb-2">' + escapeHtml(item.name || '') +
                 (item.description ? ' — ' + escapeHtml(item.description) : '') + '</p>';
             html += '<div class="input-group input-group-sm mb-2">';
             html += '<span class="input-group-text">uri</span>';
-            html += '<input type="text" class="form-control" id="' + uid + '-uri" value="' + escapeHtml(uri) + '">';
+            html += '<input type="text" class="form-control" id="' + uid + '-uri" value="' + escapeHtml(uri) + '" ' +
+                (entry.kind === 'template' ? 'placeholder="replace {placeholders} before submitting"' : '') + '>';
             html += '<button class="btn btn-spring-green" data-demo-id="' + escapeHtml(demoId) +
                 '" data-uid="' + uid + '" onclick="mcpReadResource(this)">Read</button>';
             html += '</div>';

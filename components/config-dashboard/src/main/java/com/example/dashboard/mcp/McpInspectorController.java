@@ -1,6 +1,7 @@
 package com.example.dashboard.mcp;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
@@ -97,7 +98,22 @@ public class McpInspectorController {
           .body(Map.of("error", "resources not supported for STDIO demo"));
     }
     try {
-      return ResponseEntity.ok(registry.getOrConnect(id).listResources());
+      var client = registry.getOrConnect(id);
+      // MCP splits concrete resources and URI templates into two separate calls.
+      // The 05 demo only registers templates (user-profile://{username}), so
+      // calling only listResources() would return an empty list and look broken.
+      var concrete = client.listResources();
+      var templates = client.listResourceTemplates();
+      Map<String, Object> merged = new LinkedHashMap<>();
+      merged.put(
+          "resources",
+          concrete == null || concrete.resources() == null ? List.of() : concrete.resources());
+      merged.put(
+          "resourceTemplates",
+          templates == null || templates.resourceTemplates() == null
+              ? List.of()
+              : templates.resourceTemplates());
+      return ResponseEntity.ok(merged);
     } catch (Exception e) {
       return offlineResponse(id, demo, e);
     }
