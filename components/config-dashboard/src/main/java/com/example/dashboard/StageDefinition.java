@@ -69,6 +69,18 @@ public record StageDefinition(
             "Stage 5: Agents",
             "Chain of thought, self-reflection (writer + critic loop)",
             "#e06c75",
-            List.of()));
+            List.of()),
+        mcpStage());
+  }
+
+  public static StageDefinition mcpStage() {
+    return new StageDefinition(
+        6,
+        "Model Context Protocol",
+        "6. MCP",
+        "Stage 6: MCP",
+        "MCP servers (STDIO, Streamable HTTP), clients, dynamic tools, resources, prompts",
+        "#0277bd",
+        List.of());
   }
 }
