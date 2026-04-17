@@ -356,9 +356,51 @@
         setInspectorLoading('Running MCP client demo in ' + mode + ' mode…');
         fetch('/dashboard/mcp/03/run?mode=' + encodeURIComponent(mode), { method: 'POST' })
             .then(function(r) { return r.json().then(function(body) { return { ok: r.ok, body: body }; }); })
-            .then(function(res) { renderInspector(res, 'MCP Client demo (' + mode + ')'); })
+            .then(function(res) {
+                if (res.ok && res.body && res.body.response) {
+                    renderMcp03Chat(res.body, mode);
+                } else {
+                    renderInspector(res, 'MCP Client demo (' + mode + ')');
+                }
+            })
             .catch(function(e) { renderInspector({ ok: false, body: { error: String(e && e.message || e) } }, 'MCP Client demo (' + mode + ')'); });
     };
+
+    function renderMcp03Chat(body, mode) {
+        var el = document.getElementById('mcp-inspector');
+        if (!el) return;
+        var html = '';
+        // Header
+        html += '<div class="d-flex justify-content-between align-items-center mb-2">';
+        html += '<span class="text-muted small text-uppercase fw-bold">MCP Client demo (' + escapeHtml(mode) + ')</span>';
+        html += '<span class="text-success small">OK</span>';
+        html += '</div>';
+        if (body.toolsFrom) {
+            html += '<div class="mb-3"><span class="badge-profile">tools from: ' + escapeHtml(body.toolsFrom) + '</span></div>';
+        }
+        // Chat bubbles
+        html += '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px">';
+        if (body.question) {
+            html += '<div style="align-self:flex-end;max-width:75%;background:var(--spring-green);color:#fff;padding:10px 14px;border-radius:14px 14px 2px 14px;font-size:13px;white-space:pre-wrap">' +
+                escapeHtml(body.question) + '</div>';
+        }
+        var responseMd = '';
+        try {
+            responseMd = (typeof docMarked !== 'undefined' && docMarked.parse)
+                ? docMarked.parse(body.response || '')
+                : '<p>' + escapeHtml(body.response || '') + '</p>';
+        } catch (e) {
+            responseMd = '<p>' + escapeHtml(body.response || '') + '</p>';
+        }
+        html += '<div style="align-self:flex-start;max-width:85%;background:var(--spring-card);border:1px solid var(--spring-border);color:var(--spring-text);padding:10px 14px;border-radius:14px 14px 14px 2px;font-size:13px" class="markdown-body">' +
+            responseMd + '</div>';
+        html += '</div>';
+        // Raw JSON at bottom, collapsible
+        html += '<details class="mt-2"><summary class="text-muted small" style="cursor:pointer">Raw response</summary>';
+        html += '<div class="mt-2">' + prettyJson(body) + '</div>';
+        html += '</details>';
+        el.innerHTML = html;
+    }
 
     window.mcpShowDocs = function(id) {
         // Use /status — every Stage 6 demo (01..05) has a bullet for this path in
