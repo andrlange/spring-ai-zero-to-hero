@@ -294,6 +294,7 @@ Requires `Profile.pdf` in the classpath — a sample is included in the reposito
 
 **Module:** `mcp/`
 **Dashboard:** http://localhost:8080/dashboard/stage/6
+**Walkthrough:** [What's New — Stage 6 (MCP)](../WHATS_NEW_STAGE_06_MCP.md) — attendee + trainer guide with recommended demo order and trainer notes
 
 MCP lets AI models discover and use tools at runtime. Five demos — each runs as a **separate Spring Boot application**.
 

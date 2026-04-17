@@ -74,7 +74,7 @@ Then open:
 3. **Vector Stores** — pgvector, similarity search, in-memory vs persistent
 4. **AI Patterns** — stuff-the-prompt, RAG (manual + advisor), chat memory
 5. **Advanced Agents** — chain-of-thought, self-reflection (writer + critic)
-6. **MCP** — Model Context Protocol (stdio, HTTP, dynamic tools, resources, prompts) — runnable from the workshop dashboard at `/dashboard/stage/6`
+6. **MCP** — Model Context Protocol (stdio, HTTP, dynamic tools, resources, prompts) — runnable from the workshop dashboard at `/dashboard/stage/6`. 👉 **New: [What's new in Stage 6 (MCP)](WHATS_NEW_STAGE_06_MCP.md)** — attendee + trainer walkthrough
 7. **Agentic Systems** — inner monologue, model-directed loop, Spring Shell CLIs
 8. **Observability** — distributed tracing, metrics, logs with OpenTelemetry + Grafana LGTM
 
@@ -110,7 +110,7 @@ In-depth technical documentation covering Spring AI internals, AI model fundamen
 | [Stage 3: Vector Stores](docs/spring-ai/SPRING_AI_STAGE_3.md) | VectorStore abstraction, SimpleVectorStore vs PgVectorStore, ETL pipeline |
 | [Stage 4: AI Patterns](docs/spring-ai/SPRING_AI_STAGE_4.md) | Stuff-the-prompt, manual and advisor-based RAG, chat memory, advisor architecture |
 | [Stage 5: Advanced Agents](docs/spring-ai/SPRING_AI_STAGE_5.md) | Chain-of-thought pipeline, self-reflection Writer/Critic loop, TikaDocumentReader |
-| [Stage 6: MCP](docs/spring-ai/SPRING_AI_STAGE_6.md) | MCP servers (STDIO, HTTP), clients, dynamic tools, resources, prompts, completions |
+| [Stage 6: MCP](docs/spring-ai/SPRING_AI_STAGE_6.md) · [What's New](WHATS_NEW_STAGE_06_MCP.md) | MCP servers (STDIO, HTTP), clients, dynamic tools, resources, prompts, completions |
 | [Stage 7: Agentic Systems](docs/spring-ai/SPRING_AI_STAGE_7.md) | Inner monologue, model-directed loop, forced tool calling, Spring Shell CLIs |
 | [Stage 8: Observability](docs/spring-ai/SPRING_AI_STAGE_8.md) | Custom tracing annotations, OpenTelemetry, LGTM stack, trace-log-metric correlation |
 

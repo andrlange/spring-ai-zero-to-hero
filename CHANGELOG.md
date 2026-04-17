@@ -15,9 +15,12 @@
 - Updated 04 client to point at `:8082` instead of `:8080`.
 
 ### Docs
+- New root-level [`WHATS_NEW_STAGE_06_MCP.md`](WHATS_NEW_STAGE_06_MCP.md) — attendee + trainer walkthrough for Stage 6 with recommended demo order, time budget, trainer notes, and troubleshooting quick reference. Linked from `README.md`, `docs/README.md`, `docs/spring-ai/README.md`, `docs/guide.md` Stage 6, and `docs/spring-ai/SPRING_AI_STAGE_6.md` top banner.
 - Rewrote Stage 6 sections in `SPRING_AI_STAGE_6.md` and `guide.md` with UI-first workflow, port table, and dashboard endpoint bullets.
 - Added "New in Stage 6 UI" intro boxes to each `mcp/*/README.md`.
 - New "Stage 6 / MCP" troubleshooting section.
+- Added curl equivalents sections under each Demo 01–05 in `SPRING_AI_STAGE_6.md`, plus live copy-curl in the dashboard's invoke/read/get-prompt forms (matches the stages 1–5 UX).
+- Added Demo 05 resource catalog (9 URI templates), MCP JSON-RPC server-endpoint table, and concrete-vs-template explainer.
 
 ---
 

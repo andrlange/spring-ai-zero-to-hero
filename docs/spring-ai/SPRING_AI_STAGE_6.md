@@ -1,5 +1,7 @@
 # Stage 6: Model Context Protocol (MCP)
 
+> 👉 **Looking for the attendee walkthrough?** See [`WHATS_NEW_STAGE_06_MCP.md`](../../WHATS_NEW_STAGE_06_MCP.md) — a concise tour covering the recommended demo order, trainer notes, and what to click when. This document is the deep-dive reference; the walkthrough is the quickstart.
+
 **Modules:** `mcp/01-mcp-stdio-server/`, `mcp/02-mcp-http-server/`, `mcp/03-mcp-client/`, `mcp/04-dynamic-tool-calling/`, `mcp/05-mcp-capabilities/`
 **Maven Artifacts:** `spring-ai-starter-mcp-server`, `spring-ai-starter-mcp-server-webmvc`, `spring-ai-starter-mcp-client`, `spring-ai-mcp-annotations`
 **Package Base:** `com.example`, `org.springframework.ai.mcp.sample.server`, `org.springframework.ai.mcp.samples.client`, `mcp.capabilities`

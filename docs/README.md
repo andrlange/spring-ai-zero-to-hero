@@ -23,7 +23,7 @@ In-depth technical documentation covering Spring AI internals, AI model fundamen
 | [Stage 3: Vector Stores](spring-ai/SPRING_AI_STAGE_3.md) | VectorStore abstraction, SimpleVectorStore vs PgVectorStore, ETL pipeline |
 | [Stage 4: AI Patterns](spring-ai/SPRING_AI_STAGE_4.md) | Stuff-the-prompt, manual and advisor-based RAG, chat memory, advisor architecture |
 | [Stage 5: Advanced Agents](spring-ai/SPRING_AI_STAGE_5.md) | Chain-of-thought pipeline, self-reflection Writer/Critic loop, TikaDocumentReader |
-| [Stage 6: MCP](spring-ai/SPRING_AI_STAGE_6.md) | MCP servers (STDIO, HTTP), clients, dynamic tools, resources, prompts, completions — runnable from `/dashboard/stage/6` |
+| [Stage 6: MCP](spring-ai/SPRING_AI_STAGE_6.md) · [What's New](../WHATS_NEW_STAGE_06_MCP.md) | MCP servers (STDIO, HTTP), clients, dynamic tools, resources, prompts, completions — runnable from `/dashboard/stage/6` |
 | [Stage 7: Agentic Systems](spring-ai/SPRING_AI_STAGE_7.md) | Inner monologue, model-directed loop, forced tool calling, Spring Shell CLIs |
 | [Stage 8: Observability](spring-ai/SPRING_AI_STAGE_8.md) | Custom tracing annotations, OpenTelemetry, LGTM stack, trace-log-metric correlation |
 
