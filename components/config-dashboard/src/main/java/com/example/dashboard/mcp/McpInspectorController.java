@@ -197,8 +197,15 @@ public class McpInspectorController {
                     "mode", mode));
       }
 
+      // Multiple MCP servers may expose identically-named tools (01 and 02 both ship
+      // getTemperature). Use DefaultMcpToolNamePrefixGenerator so each tool gets a
+      // server-scoped name; without it SyncMcpToolCallbackProvider throws on duplicates.
       org.springframework.ai.tool.ToolCallbackProvider provider =
-          new org.springframework.ai.mcp.SyncMcpToolCallbackProvider(clients);
+          org.springframework.ai.mcp.SyncMcpToolCallbackProvider.builder()
+              .mcpClients(clients)
+              .toolNamePrefixGenerator(
+                  new org.springframework.ai.mcp.DefaultMcpToolNamePrefixGenerator())
+              .build();
 
       String question = McpClientDemoPrompts.LOCAL_DEMO_QUESTION;
       String response =
