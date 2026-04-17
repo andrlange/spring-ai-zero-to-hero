@@ -361,7 +361,11 @@
     };
 
     window.mcpShowDocs = function(id) {
-        fetch('/dashboard/docs?path=' + encodeURIComponent('/dashboard/mcp/' + id + '/tools'))
+        // Use /status — every Stage 6 demo (01..05) has a bullet for this path in
+        // SPRING_AI_STAGE_6.md, so DocMappingService hits an exact match per demo.
+        // /tools would miss for 03 (client-only, no /tools bullet) and fall back to
+        // a loose prefix match that could return a sibling's section.
+        fetch('/dashboard/docs?path=' + encodeURIComponent('/dashboard/mcp/' + id + '/status'))
             .then(function(r) { return r.ok ? r.json() : null; })
             .then(function(data) {
                 if (!data) return;
