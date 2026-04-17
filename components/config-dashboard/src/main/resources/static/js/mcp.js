@@ -72,8 +72,7 @@
         if (body.hint) html += '<div class="mt-1"><code>' + escapeHtml(body.hint) + '</code></div>';
         if (body.detail) html += '<div class="mt-2 small text-muted">' + escapeHtml(body.detail) + '</div>';
         html += '</div>';
-        html += '<pre class="response-json mt-2"><code>' +
-            escapeHtml(JSON.stringify(body, null, 2)) + '</code></pre>';
+        html += prettyJson(body);
         document.getElementById('mcp-modal-body').innerHTML = html;
     }
 
@@ -147,8 +146,7 @@
             if (schema) {
                 html += '<details class="mt-2">';
                 html += '<summary class="text-muted small" style="cursor:pointer">Input schema</summary>';
-                html += '<pre class="response-json mt-2 mb-0" style="font-size:11px"><code>' +
-                    escapeHtml(JSON.stringify(schema, null, 2)) + '</code></pre>';
+                html += '<div class="mt-2" style="font-size:11px">' + prettyJson(schema) + '</div>';
                 html += '</details>';
             }
 
@@ -224,9 +222,7 @@
             .then(function(res) {
                 var label = res.ok ? '<span class="text-success small">OK</span>'
                                    : '<span class="text-danger small">Error</span>';
-                resultEl.innerHTML = '<div class="mb-1">' + label + '</div>' +
-                    '<pre class="response-json mb-0"><code>' +
-                    escapeHtml(JSON.stringify(res.body, null, 2)) + '</code></pre>';
+                resultEl.innerHTML = '<div class="mb-1">' + label + '</div>' + prettyJson(res.body);
             })
             .catch(function(e) {
                 resultEl.innerHTML = '<div class="text-danger small">Error: ' + escapeHtml(String(e && e.message || e)) + '</div>';
@@ -274,9 +270,7 @@
             .then(function(res) {
                 var label = res.ok ? '<span class="text-success small">OK</span>'
                                    : '<span class="text-danger small">Error</span>';
-                resultEl.innerHTML = '<div class="mb-1">' + label + '</div>' +
-                    '<pre class="response-json mb-0"><code>' +
-                    escapeHtml(JSON.stringify(res.body, null, 2)) + '</code></pre>';
+                resultEl.innerHTML = '<div class="mb-1">' + label + '</div>' + prettyJson(res.body);
             })
             .catch(function(e) {
                 resultEl.innerHTML = '<div class="text-danger small">Error: ' + escapeHtml(String(e && e.message || e)) + '</div>';
@@ -341,9 +335,7 @@
             .then(function(res) {
                 var label = res.ok ? '<span class="text-success small">OK</span>'
                                    : '<span class="text-danger small">Error</span>';
-                resultEl.innerHTML = '<div class="mb-1">' + label + '</div>' +
-                    '<pre class="response-json mb-0"><code>' +
-                    escapeHtml(JSON.stringify(res.body, null, 2)) + '</code></pre>';
+                resultEl.innerHTML = '<div class="mb-1">' + label + '</div>' + prettyJson(res.body);
             })
             .catch(function(e) {
                 resultEl.innerHTML = '<div class="text-danger small">Error: ' + escapeHtml(String(e && e.message || e)) + '</div>';
@@ -404,9 +396,7 @@
                 '<div>' + escapeHtml(res.body.error || 'error') + '</div>' +
                 '<div class="mt-1"><code>' + escapeHtml(res.body.hint) + '</code></div></div>';
         }
-        var content = '<pre class="response-json"><code>' +
-            escapeHtml(JSON.stringify(res.body, null, 2)) + '</code></pre>';
-        el.innerHTML = header + content;
+        el.innerHTML = header + prettyJson(res.body);
     }
 
     function escapeHtml(s) {
@@ -415,5 +405,19 @@
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
+    }
+
+    // Pretty-print a JSON body, recursively unwrapping any nested JSON-string
+    // fields (e.g. MCP's CallToolResult.content[0].text) and applying syntax
+    // highlighting. Reuses helpers from response.js.
+    function prettyJson(body) {
+        try {
+            if (typeof expandNestedJson === 'function' && typeof syntaxHighlightJson === 'function') {
+                return '<pre class="response-json"><code>' +
+                    syntaxHighlightJson(expandNestedJson(body)) + '</code></pre>';
+            }
+        } catch (e) { /* fall through */ }
+        return '<pre class="response-json"><code>' +
+            escapeHtml(JSON.stringify(body, null, 2)) + '</code></pre>';
     }
 })();
