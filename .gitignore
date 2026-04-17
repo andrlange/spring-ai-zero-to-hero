@@ -58,3 +58,5 @@ models/*.tar.gz
 
 ### pptx temp file
 ai-content/~$spring-ai-workshop.pptx
+
+.workshop/
