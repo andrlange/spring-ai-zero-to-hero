@@ -6,8 +6,7 @@
         "-y",
         "@modelcontextprotocol/server-brave-search"
       ],
-      "env": {
-      }
+      "env": {}
     },
     "filesystem": {
       "command": "npx",
@@ -19,4 +18,3 @@
     }
   }
 }
-
