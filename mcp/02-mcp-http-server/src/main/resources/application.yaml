@@ -1,3 +1,6 @@
+server:
+  port: 8081
+
 spring:
   ai:
     mcp:
@@ -8,7 +11,11 @@ spring:
         protocol: STREAMABLE
         streamable-http:
           mcp-endpoint: /mcp
-
   main:
-    banner-mode: off # we have turn off the banner for the same reason as to why we turn off console logging
+    banner-mode: off
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
