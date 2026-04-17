@@ -1,6 +1,6 @@
 # Stage 6: Model Context Protocol (MCP)
 
-**Modules:** `mcp/01-mcp-stdio-server/`, `02-mcp-http-server/`, `03-mcp-client/`, `04-dynamic-tool-calling/`, `05-mcp-capabilities/`
+**Modules:** `mcp/01-mcp-stdio-server/`, `mcp/02-mcp-http-server/`, `mcp/03-mcp-client/`, `mcp/04-dynamic-tool-calling/`, `mcp/05-mcp-capabilities/`
 **Maven Artifacts:** `spring-ai-starter-mcp-server`, `spring-ai-starter-mcp-server-webmvc`, `spring-ai-starter-mcp-client`, `spring-ai-mcp-annotations`
 **Package Base:** `com.example`, `org.springframework.ai.mcp.sample.server`, `org.springframework.ai.mcp.samples.client`, `mcp.capabilities`
 
@@ -13,7 +13,43 @@ Stage 6 introduces the **Model Context Protocol (MCP)** — an open standard for
 - **MCP Servers** expose tools, resources, and prompts via a standardized protocol
 - **MCP Clients** discover and invoke these capabilities at runtime
 
-Spring AI provides first-class MCP support through auto-configured starters for both servers and clients, with two transport options (STDIO and Streamable HTTP). The demos progress from basic servers to dynamic tool registration and the full MCP capabilities showcase.
+Spring AI provides first-class MCP support through auto-configured starters for both servers and clients, using two transport options: **STDIO** (subprocess-based) and **Streamable HTTP** (network-based).
+
+### Run from the UI
+
+Navigate to **http://localhost:8080/dashboard/stage/6**. The page shows five demo cards with live status pills. For HTTP demos (02, 04, 05), start the servers first via:
+
+```bash
+./workshop.sh mcp start all      # builds 01 jar + starts 02/04/05
+./workshop.sh mcp status         # check which demos are up
+./workshop.sh mcp stop all       # stop when done
+```
+
+Each card has **List tools**, **Invoke**, and (for 05) **List resources / List prompts** buttons that call the servers through the dashboard's built-in MCP client. The **Docs** button on each card opens this document.
+
+### Run from the CLI
+
+Classic one-demo-at-a-time workflow:
+
+```bash
+./mvnw spring-boot:run -pl mcp/02-mcp-http-server
+./mvnw spring-boot:run -pl mcp/04-dynamic-tool-calling/server
+./mvnw spring-boot:run -pl mcp/05-mcp-capabilities
+./mvnw spring-boot:run -pl mcp/03-mcp-client                       # local mode (default)
+./mvnw spring-boot:run -pl mcp/03-mcp-client \
+    -Dspring-boot.run.profiles=mcp-external                        # Brave + filesystem
+```
+
+### Port Allocation
+
+| Module | Port | Notes |
+|---|---|---|
+| provider app | 8080 | main dashboard |
+| gateway (spy) | 7777 | MCP traffic does NOT flow through the spy gateway |
+| MCP 01 stdio | — | stdio transport |
+| MCP 02 http | 8081 | `/mcp` |
+| MCP 04 server | 8082 | `/mcp` + `/updateTools` |
+| MCP 05 capabilities | 8083 | `/mcp` |
 
 ### Learning Objectives
 
@@ -27,11 +63,14 @@ After completing this stage, developers will be able to:
 
 ### Prerequisites
 
-> **Background reading:** See [SPRING_AI_INTRODUCTION.md](SPRING_AI_INTRODUCTION.md) for Spring AI fundamentals and [SPRING_AI_STAGE_1.md](SPRING_AI_STAGE_1.md) for the `@Tool` annotation basics.
+> Background: see [SPRING_AI_INTRODUCTION.md](SPRING_AI_INTRODUCTION.md) and [Stage 1 §Tool calling](SPRING_AI_STAGE_1.md#tool-calling).
 
-- For STDIO server: Java runtime
-- For HTTP server: available port (default 8080)
-- For MCP client (module 03): OpenAI API key, Node.js/npx for external MCP servers
+- Java 25 + Maven wrapper
+- For HTTP demos: ports 8081/8082/8083 free
+- For Demo 03 local mode: the 01 STDIO jar must be built (`./workshop.sh mcp build-01`) and 02 running
+- For Demo 03 external mode: `BRAVE_API_KEY` + Node.js/npx
+
+> **Note on the `spy` profile:** The gateway at `:7777` only inspects chat/embedding traffic to provider APIs. MCP clients talk JSON-RPC over Streamable HTTP and are not routed through the gateway. Use the dashboard's inspector panel to observe MCP request/response bodies instead.
 
 ---
 
@@ -112,8 +151,13 @@ graph LR
 
 ## Demo 01 — MCP Server via STDIO
 
-**Module:** `mcp/01-basic-stdio-mcp-server/`
+**Module:** `mcp/01-mcp-stdio-server/`
 **Source:** `BasicStdioMcpServerApplication.java`, `WeatherTools.java`
+
+**Dashboard endpoints:**
+- `GET /dashboard/mcp/01/status` — status + build hint
+- `GET /dashboard/mcp/01/tools` — list tools (spawns subprocess per request)
+- `POST /dashboard/mcp/01/invoke` — call a tool
 
 ### Description
 
@@ -197,8 +241,13 @@ logging:
 
 ## Demo 02 — MCP Server via HTTP
 
-**Module:** `mcp/02-basic-http-mcp-server/`
+**Module:** `mcp/02-mcp-http-server/`
 **Source:** `BasicHttpMcpServerApplication.java`, `WeatherTools.java`
+
+**Dashboard endpoints:**
+- `GET /dashboard/mcp/02/status`
+- `GET /dashboard/mcp/02/tools`
+- `POST /dashboard/mcp/02/invoke`
 
 ### Description
 
@@ -255,8 +304,12 @@ spring:
 
 ## Demo 03 — MCP Client
 
-**Module:** `mcp/03-basic-mcp-client/`
+**Module:** `mcp/03-mcp-client/`
 **Source:** `BasicMcpClientApplication.java`
+
+**Dashboard endpoints:**
+- `POST /dashboard/mcp/03/run?mode=local|external`
+- `GET /dashboard/mcp/03/status` — informational only (03 is a CLI, not a server)
 
 ### Description
 
@@ -322,7 +375,7 @@ CommandLineRunner chatbot(ChatClient.Builder chatClientBuilder, ToolCallbackProv
     },
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./mcp/03-basic-mcp-client/target"]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./mcp/03-mcp-client/target"]
     }
   }
 }
@@ -336,6 +389,12 @@ CommandLineRunner chatbot(ChatClient.Builder chatClientBuilder, ToolCallbackProv
 
 **Modules:** `mcp/04-dynamic-tool-calling/server/`, `mcp/04-dynamic-tool-calling/client/`
 **Source:** `ServerApplication.java`, `ClientApplication.java`, `WeatherService.java`, `MathTools.java`
+
+**Dashboard endpoints:**
+- `GET /dashboard/mcp/04/status`
+- `GET /dashboard/mcp/04/tools`
+- `POST /dashboard/mcp/04/invoke`
+- `POST /dashboard/mcp/04/update-tools` — triggers `McpSyncServer.addTool()` registration (one-shot per process)
 
 ### Description
 
@@ -444,6 +503,12 @@ McpClientCustomizer<?> customizeMcpClient() {
 
 **Module:** `mcp/05-mcp-capabilities/`
 **Source:** `McpServerApplication.java`, `WeatherService.java`, `PromptProvider.java`, `UserProfileResourceProvider.java`, `AutocompleteProvider.java`
+
+**Dashboard endpoints:**
+- `GET /dashboard/mcp/05/status`
+- `GET /dashboard/mcp/05/tools`, `POST /dashboard/mcp/05/invoke`
+- `GET /dashboard/mcp/05/resources`, `GET /dashboard/mcp/05/resources/read?uri=...`
+- `GET /dashboard/mcp/05/prompts`, `POST /dashboard/mcp/05/prompts/get`
 
 ### Description
 
