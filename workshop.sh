@@ -185,30 +185,57 @@ mcp_start_demo() {
 
 mcp_stop_demo() {
     local id="$1"
-    local pid_file
+    local pid_file port
     pid_file=$(mcp_pid_file "${id}")
+    port=$(mcp_port_for "${id}")
+
     if [ ! -f "${pid_file}" ]; then
         if mcp_is_up "${id}"; then
-            warn "MCP ${id} is up but no PID file — kill via lsof"
-            local orphan orphan_port
-            orphan_port=$(mcp_port_for "${id}")
-            orphan=$(lsof -ti:"${orphan_port}" 2>/dev/null | head -1)
-            [ -n "${orphan}" ] && kill "${orphan}" 2>/dev/null && ok "MCP ${id} stopped (PID ${orphan})"
+            warn "MCP ${id} is up but no PID file — sweeping port ${port}"
+            if command -v lsof &>/dev/null; then
+                local orphan_pids
+                orphan_pids=$(lsof -ti:"${port}" 2>/dev/null || true)
+                if [ -n "${orphan_pids}" ]; then
+                    echo "${orphan_pids}" | xargs kill -9 2>/dev/null || true
+                    ok "MCP ${id} stopped (port ${port} swept)"
+                fi
+            else
+                info "lsof not available — cannot sweep port ${port}"
+            fi
         else
             info "MCP ${id} not running"
         fi
         return 0
     fi
+
     local pid
     pid=$(cat "${pid_file}")
     if kill -0 "${pid}" 2>/dev/null; then
-        kill "${pid}" 2>/dev/null || true
-        sleep 1
-        kill -0 "${pid}" 2>/dev/null && kill -9 "${pid}" 2>/dev/null
+        # Kill the entire process group (mvnw + forked JVM)
+        kill -- -"${pid}" 2>/dev/null || kill "${pid}" 2>/dev/null || true
+        # Wait briefly for graceful shutdown
+        local waited=0
+        while kill -0 "${pid}" 2>/dev/null && [ "${waited}" -lt 10 ]; do
+            sleep 1
+            waited=$((waited + 1))
+        done
+        if kill -0 "${pid}" 2>/dev/null; then
+            kill -9 -- -"${pid}" 2>/dev/null || kill -9 "${pid}" 2>/dev/null || true
+        fi
         ok "MCP ${id} stopped (PID ${pid})"
     else
         info "MCP ${id} process already gone"
     fi
+
+    # Port-bound sweep — catches orphaned JVM children the process-group kill missed
+    if command -v lsof &>/dev/null; then
+        local port_pids
+        port_pids=$(lsof -ti:"${port}" 2>/dev/null || true)
+        if [ -n "${port_pids}" ]; then
+            echo "${port_pids}" | xargs kill -9 2>/dev/null || true
+        fi
+    fi
+
     rm -f "${pid_file}"
 }
 
@@ -247,6 +274,7 @@ cmd_mcp() {
                 fail "Usage: ./workshop.sh mcp start <id>|all"
                 return 1
             fi
+            local rc=0
             for target in "$@"; do
                 case "${target}" in
                     all)
@@ -261,23 +289,30 @@ cmd_mcp() {
                         ;;
                     *)
                         fail "Unknown MCP id: ${target} (expected 01|02|04|05|all)"
+                        rc=1
                         ;;
                 esac
             done
+            return ${rc}
             ;;
         stop)
             if [ $# -eq 0 ]; then
                 fail "Usage: ./workshop.sh mcp stop <id>|all"
                 return 1
             fi
+            local rc=0
             for target in "$@"; do
                 case "${target}" in
                     all) for id in "${MCP_DEMOS[@]}"; do mcp_stop_demo "${id}"; done ;;
                     02|04|05) mcp_stop_demo "${target}" ;;
                     01) info "01 is STDIO — nothing to stop (no long-running process)" ;;
-                    *) fail "Unknown MCP id: ${target}" ;;
+                    *)
+                        fail "Unknown MCP id: ${target} (expected 01|02|04|05|all)"
+                        rc=1
+                        ;;
                 esac
             done
+            return ${rc}
             ;;
         status)
             mcp_status_table
