@@ -1,3 +1,5 @@
+server:
+  port: 8083
 
 spring:
   ai:
@@ -9,3 +11,9 @@ spring:
         protocol: STREAMABLE
         streamable-http:
           mcp-endpoint: /mcp
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
