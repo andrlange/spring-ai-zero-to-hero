@@ -45,7 +45,11 @@ import org.springframework.context.annotation.Configuration;
       @Tag(
           name = "Stage 5: Agents",
           description =
-              "Advanced agent patterns — chain of thought (single vs multi-step), self-reflection (writer + critic loop)")
+              "Advanced agent patterns — chain of thought (single vs multi-step), self-reflection (writer + critic loop)"),
+      @Tag(
+          name = "Stage 6: MCP",
+          description =
+              "Model Context Protocol — MCP servers (STDIO, Streamable HTTP), clients, dynamic tools, resources, prompts. Runnable from the /dashboard/stage/6 page.")
     })
 public class OpenApiConfig {
 
