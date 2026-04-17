@@ -84,6 +84,67 @@ public class McpInspectorController {
     }
   }
 
+  @GetMapping("/{id}/resources")
+  public ResponseEntity<?> resources(@PathVariable String id) {
+    McpDemo demo = catalog.get(id);
+    if (demo.port() == null) {
+      return ResponseEntity.status(400)
+          .body(Map.of("error", "resources not supported for STDIO demo"));
+    }
+    try {
+      return ResponseEntity.ok(registry.getOrConnect(id).listResources());
+    } catch (Exception e) {
+      return offlineResponse(id, demo, e);
+    }
+  }
+
+  @GetMapping("/{id}/resources/read")
+  public ResponseEntity<?> readResource(
+      @PathVariable String id, @org.springframework.web.bind.annotation.RequestParam String uri) {
+    McpDemo demo = catalog.get(id);
+    try {
+      return ResponseEntity.ok(
+          registry
+              .getOrConnect(id)
+              .readResource(new io.modelcontextprotocol.spec.McpSchema.ReadResourceRequest(uri)));
+    } catch (Exception e) {
+      return offlineResponse(id, demo, e);
+    }
+  }
+
+  @GetMapping("/{id}/prompts")
+  public ResponseEntity<?> prompts(@PathVariable String id) {
+    McpDemo demo = catalog.get(id);
+    if (demo.port() == null) {
+      return ResponseEntity.status(400)
+          .body(Map.of("error", "prompts not supported for STDIO demo"));
+    }
+    try {
+      return ResponseEntity.ok(registry.getOrConnect(id).listPrompts());
+    } catch (Exception e) {
+      return offlineResponse(id, demo, e);
+    }
+  }
+
+  public record PromptGetRequest(String name, Map<String, Object> args) {}
+
+  @org.springframework.web.bind.annotation.PostMapping("/{id}/prompts/get")
+  public ResponseEntity<?> getPrompt(
+      @PathVariable String id,
+      @org.springframework.web.bind.annotation.RequestBody PromptGetRequest body) {
+    McpDemo demo = catalog.get(id);
+    try {
+      Map<String, Object> args = body.args() == null ? Map.of() : body.args();
+      return ResponseEntity.ok(
+          registry
+              .getOrConnect(id)
+              .getPrompt(
+                  new io.modelcontextprotocol.spec.McpSchema.GetPromptRequest(body.name(), args)));
+    } catch (Exception e) {
+      return offlineResponse(id, demo, e);
+    }
+  }
+
   private ResponseEntity<Map<String, Object>> offlineResponse(
       String id, McpDemo demo, Exception cause) {
     registry.reset(id);

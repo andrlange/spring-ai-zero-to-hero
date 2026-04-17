@@ -100,6 +100,30 @@ class McpInspectorControllerTest {
   }
 
   @Test
+  void resourcesEndpointReturnsMcpListResources() throws Exception {
+    io.modelcontextprotocol.spec.McpSchema.ListResourcesResult list =
+        new io.modelcontextprotocol.spec.McpSchema.ListResourcesResult(java.util.List.of(), null);
+    io.modelcontextprotocol.client.McpSyncClient client =
+        org.mockito.Mockito.mock(io.modelcontextprotocol.client.McpSyncClient.class);
+    when(client.listResources()).thenReturn(list);
+    when(registry.getOrConnect("05")).thenReturn(client);
+
+    mockMvc.perform(get("/dashboard/mcp/05/resources")).andExpect(status().isOk());
+  }
+
+  @Test
+  void promptsEndpointReturnsMcpListPrompts() throws Exception {
+    io.modelcontextprotocol.spec.McpSchema.ListPromptsResult list =
+        new io.modelcontextprotocol.spec.McpSchema.ListPromptsResult(java.util.List.of(), null);
+    io.modelcontextprotocol.client.McpSyncClient client =
+        org.mockito.Mockito.mock(io.modelcontextprotocol.client.McpSyncClient.class);
+    when(client.listPrompts()).thenReturn(list);
+    when(registry.getOrConnect("05")).thenReturn(client);
+
+    mockMvc.perform(get("/dashboard/mcp/05/prompts")).andExpect(status().isOk());
+  }
+
+  @Test
   void invokeEndpointForwardsToMcpClient() throws Exception {
     io.modelcontextprotocol.spec.McpSchema.CallToolResult result =
         new io.modelcontextprotocol.spec.McpSchema.CallToolResult(
