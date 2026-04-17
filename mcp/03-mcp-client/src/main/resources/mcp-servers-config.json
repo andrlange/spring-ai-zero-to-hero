@@ -14,7 +14,7 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "./mcp/03-basic-mcp-client/target"
+        "./mcp/03-mcp-client/target"
       ]
     }
   }
