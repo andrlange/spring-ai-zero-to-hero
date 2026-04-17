@@ -408,7 +408,20 @@ services_status_line() {
         line+="lgtm:${RED}off${NC}"
     fi
 
-    echo -e "${line}"
+    local mcp_parts=()
+    for id in "${MCP_DEMOS[@]}"; do
+        if mcp_is_up "${id}"; then
+            mcp_parts+=("${id}${GREEN}✓${NC}")
+        else
+            mcp_parts+=("${id}${RED}✗${NC}")
+        fi
+    done
+    local mcp_summary=""
+    if [ "${#mcp_parts[@]}" -gt 0 ]; then
+        mcp_summary=" | MCP: $(IFS=' '; echo "${mcp_parts[*]}")"
+    fi
+
+    echo -e "${line}${mcp_summary}"
 }
 
 # ── Constants ────────────────────────────────────────────────
