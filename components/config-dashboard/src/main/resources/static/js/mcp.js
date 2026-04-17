@@ -366,9 +366,18 @@
             .then(function(data) {
                 if (!data) return;
                 var body = document.getElementById('doc-modal-body');
-                if (body) body.innerHTML = docMarked.parse(data.fullSection || '');
                 var modal = document.getElementById('doc-modal');
-                if (modal) modal.style.display = 'flex';
+                if (!body || !modal) return;
+                body.innerHTML = docMarked.parse(data.fullSection || '');
+                // Render mermaid diagrams (same pattern as response.js showDocModal)
+                try {
+                    var mermaidEls = body.querySelectorAll('.mermaid');
+                    if (mermaidEls.length > 0 && typeof mermaid !== 'undefined') {
+                        mermaid.run({ nodes: mermaidEls });
+                    }
+                } catch (e) { /* best-effort rendering */ }
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
             });
     };
 
@@ -376,6 +385,7 @@
         if (event && event.target !== event.currentTarget) return;
         var modal = document.getElementById('doc-modal');
         if (modal) modal.style.display = 'none';
+        document.body.style.overflow = '';
     };
 
     function setInspectorLoading(msg) {
