@@ -1389,15 +1389,24 @@ cmd_stop() {
     fi
     ok "Gateway stopped"
 
-    # Ask about Docker containers
+    # Ask about Docker containers — append Ollama only when dockerized.
     echo ""
-    local stop_docker
-    read -r -p "  Stop Docker containers (postgres + LGTM)? [y/N] " stop_docker
+    local stop_docker prompt_extra=""
+    local ollama_was_docker=0
+    if [ "$(ollama_mode)" = "docker" ]; then
+        prompt_extra=" + Ollama"
+        ollama_was_docker=1
+    fi
+    read -r -p "  Stop Docker containers (postgres + LGTM${prompt_extra})? [y/N] " stop_docker
     if [[ "${stop_docker}" =~ ^[Yy]$ ]]; then
         echo -e "  ${CYAN}→${NC} Stopping PostgreSQL..."
         docker compose -f "${POSTGRES_COMPOSE}" down 2>/dev/null && ok "PostgreSQL stopped" || warn "PostgreSQL was not running"
         echo -e "  ${CYAN}→${NC} Stopping LGTM stack..."
         docker compose -f "${LGTM_COMPOSE}" down 2>/dev/null && ok "LGTM stopped" || warn "LGTM was not running"
+        if [ "${ollama_was_docker}" = "1" ]; then
+            echo -e "  ${CYAN}→${NC} Stopping dockerized Ollama..."
+            docker compose -f "${OLLAMA_COMPOSE}" down 2>/dev/null && ok "Ollama stopped" || warn "Ollama compose down failed"
+        fi
     else
         info "Docker containers left running"
     fi
@@ -1490,11 +1499,12 @@ cmd_status() {
         warn "Docker not available"
     fi
 
-    if command -v ollama &>/dev/null; then
-        header "Ollama"
-        local status_model_list
-        if status_model_list=$(ollama list 2>/dev/null); then
-            ok "Ollama server running"
+    header "Ollama"
+    case "$(ollama_mode)" in
+        local)
+            ok "Ollama running locally"
+            local status_model_list
+            status_model_list=$(ollama list 2>/dev/null || true)
             for model in "${OLLAMA_MODELS[@]}"; do
                 if echo "${status_model_list}" | grep -q "${model}"; then
                     ok "  Model: ${model}"
@@ -1502,10 +1512,23 @@ cmd_status() {
                     warn "  Model not pulled: ${model}"
                 fi
             done
-        else
-            warn "Ollama server not running"
-        fi
-    fi
+            ;;
+        docker)
+            ok "Ollama running (dockerized) — container '${OLLAMA_CONTAINER}'"
+            local docker_status_models
+            docker_status_models=$(docker exec "${OLLAMA_CONTAINER}" ollama list 2>/dev/null || true)
+            for model in "${OLLAMA_MODELS[@]}"; do
+                if echo "${docker_status_models}" | grep -q "${model}"; then
+                    ok "  Model: ${model}"
+                else
+                    warn "  Model not in container: ${model}"
+                fi
+            done
+            ;;
+        off)
+            info "Ollama not running (neither locally nor dockerized)"
+            ;;
+    esac
 
     header "Endpoints"
     echo -e "  App:       ${CYAN}http://localhost:8080${NC}"
