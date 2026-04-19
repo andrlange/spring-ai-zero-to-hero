@@ -919,12 +919,13 @@ cmd_check() {
     fi
 
     header "Ollama (optional — needed only for provider-ollama)"
-    if command -v ollama &>/dev/null; then
-        ok "Ollama installed — $(ollama --version 2>&1 | head -1)"
-        # Check if Ollama server is running
-        local model_list
-        if model_list=$(ollama list 2>/dev/null); then
-            ok "Ollama server is running"
+    local om
+    om=$(ollama_mode)
+    case "${om}" in
+        local)
+            ok "Ollama running locally — $(ollama --version 2>&1 | head -1)"
+            local model_list
+            model_list=$(ollama list 2>/dev/null || true)
             for model in "${OLLAMA_MODELS[@]}"; do
                 if echo "${model_list}" | grep -q "${model}"; then
                     ok "Model ${model} — available"
@@ -933,13 +934,42 @@ cmd_check() {
                     info "Run: ollama pull ${model}"
                 fi
             done
-        else
-            warn "Ollama server is not running — start with: ollama serve"
-        fi
-    else
-        info "Ollama not installed (not needed for cloud providers)"
-        info "Install from https://ollama.com/ if you want to run locally"
-    fi
+            ;;
+        docker)
+            ok "Ollama running (dockerized) — container '${OLLAMA_CONTAINER}'"
+            local docker_model_list
+            docker_model_list=$(docker exec "${OLLAMA_CONTAINER}" ollama list 2>/dev/null || true)
+            for model in "${OLLAMA_MODELS[@]}"; do
+                if echo "${docker_model_list}" | grep -q "${model}"; then
+                    ok "Model ${model} — available (in container)"
+                else
+                    warn "Model ${model} — not in container"
+                    info "Run: docker exec ${OLLAMA_CONTAINER} ollama pull ${model}"
+                fi
+            done
+            ;;
+        off)
+            if command -v ollama &>/dev/null; then
+                warn "Ollama installed but not running — start with: ollama serve"
+            else
+                info "Ollama not installed locally"
+                info "Install from https://ollama.com/ OR use the dockerized alternative:"
+                info "  ./workshop.sh infra ollama   (requires ollama/ollama image)"
+                info "  See docs/ollama_dockerized.md"
+            fi
+            # Hint whether the dockerized path is ready
+            if [ -d "${OLLAMA_MODELS_DIR}" ] && [ -n "$(ls -A "${OLLAMA_MODELS_DIR}" 2>/dev/null | grep -v '^\.gitkeep$' || true)" ]; then
+                info "Models detected in ${OLLAMA_MODELS_DIR#${SCRIPT_DIR}/} — container will serve them once started"
+            else
+                info "To pre-seed the dockerized Ollama: ./models/ollama.sh import (pick target 2)"
+            fi
+            if command -v docker &>/dev/null && docker image inspect ollama/ollama:latest &>/dev/null; then
+                info "Image ollama/ollama:latest is pulled locally"
+            else
+                info "Image ollama/ollama:latest is NOT pulled — ./models/containers.sh pull --with-ollama"
+            fi
+            ;;
+    esac
 
     header "Docker"
     if command -v docker &>/dev/null; then
