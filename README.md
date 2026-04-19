@@ -1,8 +1,27 @@
-# Spring AI Zero-to-Hero Workshop
+<h1 align="center">Spring AI — From Zero To Hero</h1>
 
-**Spring Boot 4.0.5 | Spring AI 2.0.0-M4 | Java 25**
+<p align="center">
+  <img src="docs/assets/workshop.png" alt="Spring AI — From Zero To Hero" width="50%">
+</p>
 
-A hands-on workshop for building AI-powered applications with Spring AI. Covers chat, embeddings, vector stores, RAG, tool calling, MCP, agentic patterns, and observability — across 6 AI providers.
+> **Spring Boot 4.0.5 | Spring AI 2.0.0-M4 | Java 25**
+>
+> A hands-on workshop for building AI-powered applications with Spring AI. Covers chat, embeddings, vector stores, RAG, tool calling, MCP, agentic patterns, and observability — across 6 AI providers.
+
+## What You'll Learn — 8 Stages
+
+Every stage builds on the previous one. You can follow them linearly, or jump straight to a stage via the dashboard.
+
+| Stage | Topic | What you take away |
+|---|---|---|
+| **1** | [Chat Fundamentals](docs/guide.md#stage-1-chat-fundamentals) | The Spring AI chat API, layer by layer — from a one-line `ChatModel.call()` through `ChatClient`, structured output, tool calling, multimodal input, and streaming responses. |
+| **2** | [Embeddings](docs/guide.md#stage-2-embeddings) | Turn text into dense float vectors. Measure similarity, understand dimensionality, and see why similar meanings cluster in vector space — the foundation of semantic search. |
+| **3** | [Vector Stores](docs/guide.md#stage-3-vector-stores) | Persist embeddings and run similarity queries through Spring AI's `VectorStore` abstraction. Same code runs against `SimpleVectorStore` (in-memory) or `PgVectorStore` (PostgreSQL). |
+| **4** | [AI Patterns](docs/guide.md#stage-4-ai-patterns) | Three production-relevant patterns: **Stuff-the-Prompt** (manual context injection), **RAG** (manual + advisor-based retrieval), and **Chat Memory** (conversation history via advisors). |
+| **5** | [Advanced Agent Patterns](docs/guide.md#stage-5-advanced-agent-patterns) | **Chain-of-Thought** flows that decompose a task into sequential LLM calls, and a **Self-Reflection Agent** (Writer + Critic loop) that iteratively improves its own output. |
+| **6** | [Model Context Protocol (MCP)](docs/guide.md#stage-6-model-context-protocol-mcp) | The open protocol that lets models discover and invoke external tools at runtime. Five runnable demos: stdio server, HTTP server, client, dynamic tool calling, and full capabilities (tools + resources + prompts + completions). |
+| **7** | [Agentic Systems](docs/guide.md#stage-7-agentic-systems) | Agents that control their own execution flow via forced tool calling. Two patterns: **Inner Monologue** (think-aloud reasoning) and **Model-Directed Loop** (agent decides when it's done). |
+| **8** | [Observability](docs/guide.md#stage-8-observability) | Full-stack traces through the LGTM stack (Grafana + Loki + Tempo + Mimir). `@TracedEndpoint`/`@TracedService`/`@TracedRepository` spans, OTel logs, metrics, and trace-to-log correlation. |
 
 <table>
 <tr>

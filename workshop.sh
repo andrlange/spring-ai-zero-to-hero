@@ -645,8 +645,11 @@ creds_status_line() {
 }
 
 # ── Running services status ─────────────────────────────────
-# Returns a compact services status line for the TUI header
-services_status_line() {
+# The header now splits app-level state (provider/spy/ui) from infra-level
+# state (pg/lgtm/ollama) into two lines for readability.
+
+# App-level status: provider + spy (gateway) + ui (dashboard)
+services_status_line_app() {
     local line=""
 
     # Provider app on port 8080
@@ -680,10 +683,17 @@ services_status_line() {
 
     # UI profile — check if dashboard endpoint responds
     if curl -sf -o /dev/null http://localhost:8080/dashboard 2>/dev/null; then
-        line+="ui:${GREEN}on${NC}  "
+        line+="ui:${GREEN}on${NC}"
     else
-        line+="ui:${RED}off${NC}  "
+        line+="ui:${RED}off${NC}"
     fi
+
+    echo "${line}"
+}
+
+# Infra-level status: postgres + lgtm + ollama (three-state)
+services_status_line_infra() {
+    local line=""
 
     # Docker: postgres
     if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "postgres"; then
@@ -703,9 +713,9 @@ services_status_line() {
     local om
     om=$(ollama_mode)
     case "${om}" in
-        docker) line+=" | ollama:${CYAN}docker${NC}" ;;
-        local)  line+=" | ollama:${GREEN}local${NC}" ;;
-        off)    line+=" | ollama:${RED}off${NC}" ;;
+        docker) line+="  ollama:${CYAN}docker${NC}" ;;
+        local)  line+="  ollama:${GREEN}local${NC}" ;;
+        off)    line+="  ollama:${RED}off${NC}" ;;
     esac
 
     echo -e "${line}"
@@ -1901,7 +1911,8 @@ draw_menu() {
     echo -e "${BOLD}${CYAN}│${NC}  Boot 4.0.5 | AI 2.0.0-M4 | Java 25                      ${BOLD}${CYAN}│${NC}"
     echo -e "${BOLD}${CYAN}├──────────────────────────────────────────────────────────┘${NC}"
     echo -e "${BOLD}${CYAN}│${NC}  Creds:   $(creds_status_line)"
-    echo -e "${BOLD}${CYAN}│${NC}  State:   $(services_status_line)"
+    echo -e "${BOLD}${CYAN}│${NC}  State:   $(services_status_line_app)"
+    echo -e "${BOLD}${CYAN}│${NC}  Infra:   $(services_status_line_infra)"
     echo -e "${BOLD}${CYAN}│${NC}  MCP:     $(mcp_status_line)"
     echo -e "${BOLD}${CYAN}│${NC}  Agentic: $(agentic_status_line)"
     echo -e "${BOLD}${CYAN}├──────────────────────────────────────────────────────────┐${NC}"
