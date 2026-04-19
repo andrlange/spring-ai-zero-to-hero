@@ -699,6 +699,15 @@ services_status_line() {
         line+="lgtm:${RED}off${NC}"
     fi
 
+    # Ollama three-state: docker (cyan) | local (green) | off (red)
+    local om
+    om=$(ollama_mode)
+    case "${om}" in
+        docker) line+=" | ollama:${CYAN}docker${NC}" ;;
+        local)  line+=" | ollama:${GREEN}local${NC}" ;;
+        off)    line+=" | ollama:${RED}off${NC}" ;;
+    esac
+
     echo -e "${line}"
 }
 
@@ -819,6 +828,10 @@ POSTGRES_COMPOSE="${SCRIPT_DIR}/docker/postgres/docker-compose.yaml"
 LGTM_COMPOSE="${SCRIPT_DIR}/docker/observability-stack/docker-compose.yaml"
 POSTGRES_CONTAINER="postgres-postgres-1"
 LGTM_CONTAINER="grafana-lgtm"
+OLLAMA_COMPOSE="${SCRIPT_DIR}/docker/ollama/docker-compose.yaml"
+OLLAMA_GPU_COMPOSE="${SCRIPT_DIR}/docker/ollama/docker-compose.gpu.yaml"
+OLLAMA_CONTAINER="ollama"
+OLLAMA_MODELS_DIR="${SCRIPT_DIR}/models/ollama"
 
 OLLAMA_MODELS=("qwen3" "nomic-embed-text" "llava")
 DATABASES=("ollama" "openai" "azure")
@@ -831,6 +844,46 @@ PROFILE_DESC=(
     "Workshop dashboard"
     "Gateway network spy"
 )
+
+# ─────────────────────────────────────────────────────────────
+# Ollama mode detection — returns "docker" | "local" | "off"
+# Docker-first because both use port 11434; container-name presence
+# is the authoritative signal.
+# ─────────────────────────────────────────────────────────────
+ollama_mode() {
+    if command -v docker &>/dev/null && \
+       docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^${OLLAMA_CONTAINER}$"; then
+        echo "docker"
+    elif curl -sf http://localhost:11434/api/tags &>/dev/null; then
+        echo "local"
+    else
+        echo "off"
+    fi
+}
+
+# Emits the docker-compose command (as a single string) with the GPU overlay
+# appended when NVIDIA is detected (or forced via WORKSHOP_OLLAMA_GPU=1).
+# Disable with WORKSHOP_OLLAMA_GPU=0.
+ollama_compose_cmd() {
+    local base="docker compose -f ${OLLAMA_COMPOSE}"
+    local force="${WORKSHOP_OLLAMA_GPU:-auto}"
+    if [ "${force}" = "0" ]; then
+        echo "${base}"
+        return
+    fi
+    local gpu_ok=0
+    if [ "${force}" = "1" ]; then
+        gpu_ok=1
+    elif command -v nvidia-smi &>/dev/null && \
+         docker info 2>/dev/null | grep -qi 'Runtimes:.*nvidia'; then
+        gpu_ok=1
+    fi
+    if [ "${gpu_ok}" = "1" ] && [ -f "${OLLAMA_GPU_COMPOSE}" ]; then
+        echo "${base} -f ${OLLAMA_GPU_COMPOSE}"
+    else
+        echo "${base}"
+    fi
+}
 
 # ─────────────────────────────────────────────────────────────
 # cmd_check — Check all prerequisites
