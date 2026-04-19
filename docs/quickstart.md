@@ -12,7 +12,7 @@ Check that you have these installed before the workshop starts:
 [ ] Java 25 — java --version should show openjdk 25
 [ ] Maven wrapper — ./mvnw --version should show 3.9.14
 [ ] Docker — docker --version and docker compose version
-[ ] Ollama — ollama --version
+[ ] Ollama — ollama --version  (or use the dockerized alternative, see Section 3.5)
 [ ] tmux (optional) — tmux -V  (enables the split-pane TUI described below)
 ```
 
@@ -73,6 +73,44 @@ Verify:
 docker ps
 # Should show: postgres, grafana/otel-lgtm containers running
 ```
+
+---
+
+## 3.5 No local Ollama? Use the dockerized alternative
+
+Skip this section if you already have Ollama installed.
+
+Attendees without a native Ollama can run it as a container. The workshop's
+port, volume layout, and `workshop.sh` integration all match, so the rest of
+the guide works unchanged.
+
+**One-time:** pull the image (counts into your `./workshop.sh setup` prompt):
+
+```bash
+./workshop.sh setup   # answer Y at the [3/4] prompt for ollama/ollama:latest
+```
+
+**Load models (pick one):**
+
+```bash
+# (a) Online: pulls each workshop model directly into the container
+./workshop.sh infra ollama
+cd models && ./ollama.sh import --target=docker-pull
+
+# (b) Offline / airgapped: unpack an existing models.tar.gz into models/ollama/
+cd models && ./ollama.sh import --target=docker
+./workshop.sh infra ollama
+```
+
+**Verify:**
+
+```bash
+curl http://localhost:11434/api/tags
+./workshop.sh status       # shows ollama:docker
+```
+
+See [docs/ollama_dockerized.md](ollama_dockerized.md) for performance notes
+(macOS CPU-only, Linux NVIDIA overlay) and full command reference.
 
 ---
 

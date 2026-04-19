@@ -62,7 +62,7 @@ Then open:
 
 - **Java 25+** — `sdk install java 25.0.2-librca`
 - **Docker** — for PostgreSQL/pgvector and Grafana LGTM
-- **Ollama** *(optional)* — only needed for local provider: `ollama pull qwen3 && ollama pull nomic-embed-text && ollama pull llava`
+- **Ollama** *(optional)* — only needed for local provider: `ollama pull qwen3 && ollama pull nomic-embed-text && ollama pull llava`. No local install? Use the [dockerized alternative](docs/ollama_dockerized.md).
 - **Cloud provider** *(alternative to Ollama)* — configure API keys with `./workshop.sh creds`
 - **tmux** *(optional)* — enables a split-pane TUI with live logs on the right: `brew install tmux` (macOS), `sudo apt-get install tmux` (Debian/Ubuntu), `sudo dnf install tmux` (Fedora/RHEL). If not installed, the plain menu works identically.
 

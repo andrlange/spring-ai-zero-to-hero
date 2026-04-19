@@ -251,3 +251,55 @@ Dashboard shows `./workshop.sh mcp build-01`. Run that command — it builds `mc
 | `spy` + Ollama not capturing traffic | Profile not active | Use `--profile=ollama,spy,observation` |
 
 See also: `SPRING_AI_STAGE_7.md § Ollama fallback behavior`.
+
+---
+
+## Dockerized Ollama
+
+### Port 11434 in use — both native and dockerized Ollama
+
+Only one can own port 11434 at a time. Check which is running:
+
+```bash
+./workshop.sh status | grep -oE 'ollama:[a-z]+'
+```
+
+Stop the one you don't want:
+
+```bash
+# macOS native — right-click the Ollama menu-bar icon → Quit
+# Or force-kill
+pkill -x ollama
+
+# Dockerized
+docker compose -f docker/ollama/docker-compose.yaml down
+```
+
+### Dockerized Ollama container runs but `ollama list` is empty
+
+The `/root/.ollama/models` mount isn't finding models. Confirm and fix:
+
+```bash
+ls models/ollama/manifests        # should list registry.ollama.ai
+docker compose -f docker/ollama/docker-compose.yaml down
+docker compose -f docker/ollama/docker-compose.yaml up -d
+docker exec ollama ollama list
+```
+
+On SELinux (Fedora/RHEL):
+`chcon -Rt svirt_sandbox_file_t models/ollama`.
+
+On rootless Docker, ensure `models/ollama/` is owned by your user.
+
+### Slow inference inside the dockerized Ollama
+
+Expected on macOS — containers can't access Metal, so inference is
+CPU-only and typically 3–10× slower than native `Ollama.app`. On
+Linux+NVIDIA, add the GPU overlay:
+
+```bash
+docker compose -f docker/ollama/docker-compose.yaml \
+               -f docker/ollama/docker-compose.gpu.yaml up -d
+```
+
+See [docs/ollama_dockerized.md](ollama_dockerized.md) for detail.

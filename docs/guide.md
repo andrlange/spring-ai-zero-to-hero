@@ -102,6 +102,24 @@ docker compose -f docker/observability-stack/docker-compose.yaml up -d
 
 ---
 
+### Dockerized Ollama — optional alternative
+
+`workshop.sh` supports three Ollama states, shown in the menu header and
+`status` command:
+
+| State | Meaning |
+|---|---|
+| `ollama:local`  | Host Ollama responds on `:11434` |
+| `ollama:docker` | The `ollama` container is running |
+| `ollama:off`    | Neither |
+
+Both modes serve the same OpenAI-compatible API on port 11434, so
+`provider-ollama` code is unchanged either way. Pick whichever is easier
+to run on your machine — see [docs/ollama_dockerized.md](ollama_dockerized.md)
+for installation, airgapped loading, and performance trade-offs.
+
+---
+
 ## Stage 1: Chat Fundamentals
 
 **Module:** `components/apis/chat/`

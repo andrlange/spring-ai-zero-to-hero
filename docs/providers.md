@@ -68,6 +68,21 @@ Verified 2026-04-03.
 
 **Minimum system:** 8 GB RAM for qwen3 + nomic-embed-text. 16 GB recommended for running all models.
 
+### Alternative: dockerized Ollama
+
+If you can't or don't want to install Ollama natively, run it as a container
+instead. The compose file in `docker/ollama/` mounts `models/ollama/` as the
+model store, so the archives produced by `models/ollama.sh export` are
+portable between the native and dockerized paths.
+
+```bash
+./workshop.sh infra ollama        # start container on port 11434
+./workshop.sh status              # confirm: ollama:docker
+```
+
+Full reference — including CPU vs GPU, x86 vs arm64, and the airgapped
+workflow — in [docs/ollama_dockerized.md](ollama_dockerized.md).
+
 ### Install and start
 
 ```bash
