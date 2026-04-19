@@ -193,10 +193,43 @@ do_import() {
   esac
 }
 
-# Placeholder — implemented in Task 3.
+# ---------------------------------------------------------------------------
+# IMPORT mode 3: pull each WORKSHOP_MODELS entry into the running 'ollama'
+# container via docker exec. No tarball involved.
+# ---------------------------------------------------------------------------
 do_import_docker_pull() {
-  echo -e "${RED}docker-pull target not implemented yet (see Task 3).${RESET}" >&2
-  return 1
+  if ! command -v docker &>/dev/null; then
+    echo -e "${RED}ERROR: docker is not installed.${RESET}" >&2
+    return 1
+  fi
+  if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -q '^ollama$'; then
+    echo -e "${RED}ERROR: the 'ollama' container is not running.${RESET}" >&2
+    echo "Start it first:" >&2
+    echo "  ./workshop.sh infra ollama" >&2
+    echo "  docker compose -f docker/ollama/docker-compose.yaml up -d" >&2
+    return 1
+  fi
+
+  echo "Pulling workshop models into the 'ollama' container ..."
+  local failed=0
+  for model in "${WORKSHOP_MODELS[@]}"; do
+    echo ""
+    echo -e "--- ${CYAN}${model}${RESET} ---"
+    if docker exec ollama ollama pull "$model"; then
+      echo -e "  ${GREEN}OK${RESET}  $model"
+    else
+      echo -e "  ${RED}FAIL${RESET} $model"
+      failed=$((failed + 1))
+    fi
+  done
+
+  echo ""
+  if [[ $failed -gt 0 ]]; then
+    echo -e "${YELLOW}${failed} model(s) failed to pull.${RESET} See output above."
+    return 1
+  fi
+  echo -e "${GREEN}All workshop models pulled into the container.${RESET}"
+  echo "Verify: docker exec ollama ollama list"
 }
 
 # ---------------------------------------------------------------------------
