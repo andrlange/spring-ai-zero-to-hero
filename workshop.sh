@@ -1126,6 +1126,15 @@ cmd_start() {
         exit 1
     fi
 
+    # Parse optional --ollama-docker flag (added here rather than via Spring profiles,
+    # since this concerns infrastructure rather than app configuration).
+    local want_ollama_docker=0
+    # shellcheck disable=SC2124
+    local raw_args="${@:-}"
+    if echo " ${raw_args} " | grep -q -- ' --ollama-docker '; then
+        want_ollama_docker=1
+    fi
+
     echo ""
     echo -e "${BOLD}Starting provider: ${CYAN}${provider}${NC}"
     [ -n "${profiles}" ] && echo -e "Profiles: ${CYAN}${profiles}${NC}"
@@ -1142,6 +1151,27 @@ cmd_start() {
         header "Starting LGTM observability stack"
         docker compose -f "${LGTM_COMPOSE}" up -d
         ok "LGTM stack started"
+    fi
+
+    if [ "${want_ollama_docker}" = "1" ] && [ "${provider}" = "ollama" ]; then
+        if [ ! -f "${OLLAMA_COMPOSE}" ]; then
+            fail "Missing ${OLLAMA_COMPOSE} — cannot honor --ollama-docker"
+            return 1
+        fi
+        header "Starting dockerized Ollama"
+        eval "$(ollama_compose_cmd) up -d"
+        echo -e "  ${CYAN}→${NC} Waiting for Ollama on port 11434..."
+        local wait_n=0
+        while [ "${wait_n}" -lt 30 ]; do
+            curl -sf http://localhost:11434/api/tags &>/dev/null && break
+            sleep 2
+            wait_n=$((wait_n + 1))
+        done
+        if [ "${wait_n}" -ge 30 ]; then
+            warn "Dockerized Ollama did not respond within 60s"
+        else
+            ok "Dockerized Ollama ready"
+        fi
     fi
 
     # Check if port 8080 is already in use (works on macOS and Linux)
@@ -1897,7 +1927,13 @@ interactive_infra() {
     echo -e "${BOLD}Start infrastructure:${NC}"
     echo -e "  ${GREEN}1)${NC} PostgreSQL (pgvector)    port 15432"
     echo -e "  ${GREEN}2)${NC} LGTM observability       port 3000, 4317, 4318"
-    echo -e "  ${GREEN}3)${NC} Both"
+    echo -e "  ${GREEN}3)${NC} Both (1+2)"
+    local has_ollama_compose=0
+    if [ -f "${OLLAMA_COMPOSE}" ]; then
+        has_ollama_compose=1
+        echo -e "  ${GREEN}4)${NC} Ollama (dockerized)      port 11434"
+        echo -e "  ${GREEN}5)${NC} All three (1+2+4)"
+    fi
     echo -e "  ${RED}a)${NC} Abort"
     echo ""
     local choice
@@ -1921,6 +1957,24 @@ interactive_infra() {
             header "Starting LGTM observability stack"
             docker compose -f "${LGTM_COMPOSE}" up -d
             ok "LGTM started — Grafana on port 3000"
+            ;;
+        4)
+            [ "${has_ollama_compose}" = "1" ] || { warn "Invalid choice"; return 0; }
+            header "Starting dockerized Ollama"
+            eval "$(ollama_compose_cmd) up -d"
+            ok "Ollama container started on port 11434"
+            ;;
+        5)
+            [ "${has_ollama_compose}" = "1" ] || { warn "Invalid choice"; return 0; }
+            header "Starting PostgreSQL (pgvector)"
+            docker compose -f "${POSTGRES_COMPOSE}" up -d
+            ok "PostgreSQL started on port 15432"
+            header "Starting LGTM observability stack"
+            docker compose -f "${LGTM_COMPOSE}" up -d
+            ok "LGTM started — Grafana on port 3000"
+            header "Starting dockerized Ollama"
+            eval "$(ollama_compose_cmd) up -d"
+            ok "Ollama container started on port 11434"
             ;;
         *)
             warn "Invalid choice"
@@ -2026,7 +2080,20 @@ interactive_start() {
     if [[ "${start_infra}" =~ ^[aA]$ ]]; then
         info "Aborted"; return 0
     fi
-    cmd_start "${SELECTED_PROVIDER}" "${SELECTED_PROFILES}"
+
+    # When user picked ollama and neither native nor container is up,
+    # offer to start the dockerized one alongside the provider app.
+    local passthrough=()
+    if [ "${SELECTED_PROVIDER}" = "ollama" ] && [ "$(ollama_mode)" = "off" ] && [ -f "${OLLAMA_COMPOSE}" ]; then
+        local ans
+        read -r -p "  Also start dockerized Ollama? [y/N] " ans
+        if [[ "${ans}" =~ ^[yY] ]]; then
+            passthrough+=("--ollama-docker")
+        fi
+    fi
+
+    # bash 3.2-safe empty-array expansion under set -u:
+    cmd_start "${SELECTED_PROVIDER}" "${SELECTED_PROFILES}" ${passthrough[@]+"${passthrough[@]}"}
 }
 
 interactive_mcp_start() {
@@ -2248,6 +2315,15 @@ main() {
                     docker compose -f "${LGTM_COMPOSE}" up -d
                     ok "LGTM started — Grafana on port 3000"
                     ;;
+                ollama)
+                    if [ ! -f "${OLLAMA_COMPOSE}" ]; then
+                        fail "Missing ${OLLAMA_COMPOSE}"
+                        exit 1
+                    fi
+                    header "Starting dockerized Ollama"
+                    eval "$(ollama_compose_cmd) up -d"
+                    ok "Ollama container started on port 11434"
+                    ;;
                 all|both)
                     header "Starting PostgreSQL (pgvector)"
                     docker compose -f "${POSTGRES_COMPOSE}" up -d
@@ -2255,10 +2331,15 @@ main() {
                     header "Starting LGTM observability stack"
                     docker compose -f "${LGTM_COMPOSE}" up -d
                     ok "LGTM started — Grafana on port 3000"
+                    if [ -f "${OLLAMA_COMPOSE}" ]; then
+                        header "Starting dockerized Ollama"
+                        eval "$(ollama_compose_cmd) up -d"
+                        ok "Ollama container started on port 11434"
+                    fi
                     ;;
                 *)
                     fail "Unknown target: ${target}"
-                    echo "Usage: ./workshop.sh infra <postgres|lgtm|all>"
+                    echo "Usage: ./workshop.sh infra <postgres|lgtm|ollama|all>"
                     exit 1
                     ;;
             esac
@@ -2274,6 +2355,7 @@ main() {
             local profiles=""
             shift || true
             # Parse --profiles flag
+            local passthrough=()
             while [ $# -gt 0 ]; do
                 case "$1" in
                     --profiles)
@@ -2284,12 +2366,17 @@ main() {
                         profiles="${1#--profiles=}"
                         shift
                         ;;
+                    --ollama-docker)
+                        passthrough+=("--ollama-docker")
+                        shift
+                        ;;
                     *)
                         shift
                         ;;
                 esac
             done
-            cmd_start "${provider}" "${profiles}"
+            # bash 3.2-safe empty-array expansion under set -u:
+            cmd_start "${provider}" "${profiles}" ${passthrough[@]+"${passthrough[@]}"}
             ;;
         stop)
             cmd_stop
