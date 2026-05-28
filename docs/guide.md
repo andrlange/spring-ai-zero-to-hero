@@ -2,7 +2,7 @@
 
 Complete walkthrough of all 8 stages for self-paced learners. Covers every demo, the concepts behind it, and the code to look at.
 
-**Tech stack:** Spring Boot 4.0.6 | Spring AI 2.0.0-M7 | Java 25 | Spring Framework 7
+**Tech stack:** Spring Boot 4.0.6 | Spring AI 2.0.0-M8 | Java 25 | Spring Framework 7
 
 ---
 

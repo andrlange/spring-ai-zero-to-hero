@@ -14,12 +14,12 @@ import org.springframework.context.annotation.Configuration;
     info =
         @Info(
             title = "Spring AI Zero-to-Hero Workshop",
-            version = "2.0.0-M7",
+            version = "2.0.0-M8",
             description =
                 """
                 Interactive workshop demonstrating Spring AI capabilities across 5 stages.
 
-                **Tech Stack:** Spring Boot 4.0.6 | Spring AI 2.0.0-M7 | Java 25
+                **Tech Stack:** Spring Boot 4.0.6 | Spring AI 2.0.0-M8 | Java 25
 
                 **Endpoints are provider-independent** — the same API works with Ollama, OpenAI, \
                 Anthropic, Azure, Google, and AWS Bedrock. The active provider depends on which \
