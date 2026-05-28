@@ -8,7 +8,7 @@
 >
 > A hands-on workshop for building AI-powered applications with Spring AI. Covers chat, embeddings, vector stores, RAG, tool calling, MCP, agentic patterns, and observability — across 6 AI providers.
 
-> ⚠️ **Recently upgraded Spring AI 2.0.0-M5 → 2.0.0-M6.** The chat-memory advisor API changed: `PromptChatMemoryAdvisor` was removed in M6 and `MessageChatMemoryAdvisor.Builder.conversationId(String)` is gone — the conversation id is now passed at request time via the `ChatMemory.CONVERSATION_ID` context key. Affected `mem_02/ChatHistoryController` and both agentic-system `Agent` classes. Full breakdown with diffs and per-provider checklist: **[SPRING_AI_M5_TO_M6_MIGRATION.md](SPRING_AI_M5_TO_M6_MIGRATION.md)**. The prior M4→M5 record remains in **[SPRING_AI_M4_TO_M5_MIGRATION.md](SPRING_AI_M4_TO_M5_MIGRATION.md)**.
+> ⚠️ **Recently upgraded Spring AI 2.0.0-M6 → 2.0.0-M7.** A quiet bump on the audit surface — `ToolCallAdvisor` is now the default tool-call manager, MCP Java SDK 2.0.0-M3 absorbed cleanly, SSE transports deprecated in favour of Streamable HTTP — all with **zero application-code changes**. One runtime-only packaging bug surfaced (M7 ships `spring-ai-autoconfigure-mcp-client-httpclient` referencing a `mcp-client-common` artifact that wasn't published) and is worked around via `spring.autoconfigure.exclude` in each provider's `application.yaml`; revisit at the 2.0.0-GA bump. Full breakdown with impact analysis and the GA-cleanup checklist: **[SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md](SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md)**. Prior records: **[SPRING_AI_M5_TO_M6_MIGRATION.md](SPRING_AI_M5_TO_M6_MIGRATION.md)** and **[SPRING_AI_M4_TO_M5_MIGRATION.md](SPRING_AI_M4_TO_M5_MIGRATION.md)**.
 
 ## What You'll Learn — 8 Stages
 
