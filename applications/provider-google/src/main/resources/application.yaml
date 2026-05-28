@@ -1,6 +1,13 @@
 spring:
   application:
     name: google
+  autoconfigure:
+    exclude:
+      # Spring AI 2.0.0-M7 packaging bug — these autoconfigs reference classes in the
+      # unpublished spring-ai-autoconfigure-mcp-client-common artifact and crash at startup.
+      # Workshop's MCP Inspector builds clients manually so it does not need them.
+      - org.springframework.ai.mcp.client.httpclient.autoconfigure.SseHttpClientTransportAutoConfiguration
+      - org.springframework.ai.mcp.client.httpclient.autoconfigure.StreamableHttpHttpClientTransportAutoConfiguration
   config:
     import: "optional:classpath:/creds.yaml"
   profiles:

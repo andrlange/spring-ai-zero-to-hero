@@ -2,7 +2,7 @@
   "id": null,
   "uid": "workshop-overview",
   "title": "Spring AI Workshop Overview",
-  "description": "Key metrics for the Spring AI Zero-to-Hero workshop running on Spring Boot 4.0.6 + Spring AI 2.0.0-M6",
+  "description": "Key metrics for the Spring AI Zero-to-Hero workshop running on Spring Boot 4.0.6 + Spring AI 2.0.0-M7",
   "tags": ["spring-ai", "workshop"],
   "timezone": "browser",
   "editable": true,

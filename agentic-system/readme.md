@@ -1,6 +1,6 @@
 # agentic-system
 
-**Spring Boot 4.0.6 | Spring AI 2.0.0-M6 | Spring Shell 4.0.1**
+**Spring Boot 4.0.6 | Spring AI 2.0.0-M7 | Spring Shell 4.0.1**
 
 Welcome to the **Agentic System** — a progressive series of hands-on examples that teach you how to
 design and build intelligent, tool-using AI agents powered by modern LLMs.

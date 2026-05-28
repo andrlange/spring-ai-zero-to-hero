@@ -4,7 +4,7 @@
   <img src="docs/assets/workshop.png" alt="Spring AI — From Zero To Hero" width="50%">
 </p>
 
-> **Spring Boot 4.0.6 | Spring AI 2.0.0-M6 | Java 25**
+> **Spring Boot 4.0.6 | Spring AI 2.0.0-M7 | Java 25**
 >
 > A hands-on workshop for building AI-powered applications with Spring AI. Covers chat, embeddings, vector stores, RAG, tool calling, MCP, agentic patterns, and observability — across 6 AI providers.
 
