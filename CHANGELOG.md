@@ -1,5 +1,30 @@
 # Changelog — Spring AI Zero-to-Hero Workshop
 
+## [2.3.7] - 2026-05-28
+
+### Changed
+- Bumped Spring AI from `2.0.0-M7` → `2.0.0-M8` across the parent POM, workshop docs, dashboard, slides (and `slides.html.original` baseline), Grafana dashboard, `workshop.sh` banners, OpenAPI metadata, and all provider/component readmes.
+- New `v2.0.0-M8` (2026-05-27) entry added to the pixel-art Spring AI History timeline; M7 retitled from "Where we are today" to "ToolCallAdvisor default + MCP SDK M3".
+
+### Removed
+- **The M7 mcp-client autoconfig workaround.** The 7-line `spring.autoconfigure.exclude` block added by commit `968807b` is gone from all 6 provider `application.yaml` files. M8 #6138 (sdeleuze) restored the missing `spring-ai-autoconfigure-mcp-client-common` transitive dependency, so the previously-unpublished property classes (`McpSseClientProperties`, `McpStreamableHttpClientProperties`, `McpClientCommonProperties`) are now resolvable at startup and providers boot cleanly without manual exclusion.
+
+### Fixed upstream (M8 release-notes items relevant to us)
+- **#6138 — Restore transitive autoconfig dependencies.** This is the upstream fix for the M7 packaging bug that crashed every provider boot in our workshop. Verified post-bump: `provider-ollama` boots cleanly in 1.6 seconds with `ui,spy` profiles (no workaround needed).
+- **#6164 — `spring-ai-starter-vector-store-pgvector` requires `spring-boot-starter-jdbc`.** No effect for us — our 3 pgvector providers (openai, azure, ollama) already include `spring-boot-starter-flyway` which pulls jdbc transitively. The fix closes a latent footgun for upstream users.
+- **#6171 — `spring-ai-starter-model-google-genai` over-declared embedding dependency.** `provider-google/pom.xml` already has an explicit `<exclusions>` block against the embedding artifact; M8 removes the embedding dep from the starter so our exclusion is now redundant (left in place for this bump — optional follow-up to clean up).
+- **#6150 — M7 forced API-key requirement broke cookie/session auth.** No effect — we always provide API keys via `creds.yaml`.
+
+### Other release-notes items not relevant here
+- **#6186 — Dash-separated convention for Spring Boot properties.** No-op — all workshop `spring.ai.*` config keys already use dash-separated naming.
+- **#6127 — `ChatOptions#mutate` return-type specificity.** No-op — no `.mutate(...)` calls in our codebase.
+- **#6090 — Exclude `jackson-dataformat-yaml` from `json-schema-validator`.** No-op — we don't depend on `jackson-dataformat-yaml` directly.
+- **#5585 — MistralAI Jackson mapping improvements.** No-op — we don't use Mistral.
+
+### Reactor verify
+- `./mvnw clean verify` — 42 modules, BUILD SUCCESS, all tests pass.
+- Runtime smoke: `provider-ollama` with `ui,spy` profiles — `Started OllamaApplication in 1.569 seconds` (no workaround block present, M8 fix is live).
+
 ## [2.3.6] - 2026-05-28
 
 ### Changed
