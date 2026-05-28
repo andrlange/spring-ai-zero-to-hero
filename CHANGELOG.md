@@ -1,5 +1,31 @@
 # Changelog — Spring AI Zero-to-Hero Workshop
 
+## [2.3.6] - 2026-05-28
+
+### Changed
+- Bumped Spring AI from `2.0.0-M6` → `2.0.0-M7` across the parent POM, workshop docs, dashboard, slides (and the `slides.html.original` baseline), Grafana dashboard, `workshop.sh` banners, the OpenAPI metadata, and all provider/component readmes.
+- New `v2.0.0-M7` (2026-05-22) entry added to the pixel-art Spring AI History timeline; the prior "Where we are today" sign now sits on M6.
+
+### Migrated (M7 changes audited)
+- **`ToolCallAdvisor` is now the default tool-call management option (#5459, #6096, #6111).** Behavioral change: tool calls execute through the advisor chain instead of the internal model loop. No code changes needed — all tool-using surfaces (chat_05 demos, both agentic agents, MCP client modules, dashboard MCP Inspector) compile clean and unit tests pass. Stage 8 observability span tree may now include a `tool.call.advisor` wrapper — verification deferred to runtime smoke tests against a live provider (workshop maintainer to confirm and refresh Grafana panels / Stage 8 docs if span shape changed).
+- **MCP Java SDK 2.0.0-M2 → 2.0.0-M3 (#6121).** Audited every M3 breaking change against our imports before bumping: `ResourceReference` reduced `(type, uri)` → `(uri)` (we already use the 1-arg form at `mcp/05-mcp-capabilities/.../ClientSse.java:94`); `PromptReference.equals/hashCode` keyed on name only (we don't use it as a map/set key); `CompleteReference.identifier()` deprecated (we don't import it); `CreateMessageRequest.maxTokens` / `CreateMessageResult.model` mandatory (we don't construct either); "builders now require mandatory args in factory" (`McpClient.sync(transport)` / `HttpClientStreamableHttpTransport.builder(url)` already satisfy this). All 5 `mcp/` submodules compile and pass tests on M3 with **zero code changes**.
+- **SSE transports deprecated, Streamable HTTP becomes the default server protocol (#5969).** No-op — all 3 HTTP-based MCP servers (`02-mcp-http-server`, `04-dynamic-tool-calling`, `05-mcp-capabilities`) already pin `protocol: STREAMABLE` + `streamable-http.mcp-endpoint`; `01-mcp-stdio-server` uses stdio. The misleadingly-named `ClientSse.java` test in `mcp/05-mcp-capabilities` already uses `HttpClientStreamableHttpTransport`; class rename left as a follow-up.
+- **PgVector dimension validation added (#4868).** Configured dimensions already match each provider's embedding model (`openai`: 1536 / `azure`: 1536 / `ollama`: 768 — matching `text-embedding-3-small` / `text-embedding-3-small` / `nomic-embed-text` respectively). Smoke-test against a live Postgres deferred to workshop maintainer; expected to pass.
+- **`ChatOptions` setters removed (#6025).** No-op — the codebase migrated to `ChatOptions.Builder` everywhere during the [2.3.4] M4 → M5 bump.
+- **Gemini default `GEMINI_2_0_FLASH` → `GEMINI_2_5_FLASH` (#6003).** No-op — all Google references already use `gemini-2.5-flash`.
+
+### Other release-notes items not relevant here
+- Removed `spring-ai-spring-cloud-bindings` (#6079) and CosmosDB components (#6080) — not used.
+- Ollama GraalVM native-image fix (#6043) — we don't compile native images.
+- OpenAI streaming chunk-loss and metadata-preservation fixes (#5120, #5929, #6014) — beneficial, no code change needed; `chat_08/StreamingChatModelController` benefits transparently.
+- Kotlin MCP nullable-fields fix (#5997) — Java-only codebase.
+- `OpenAi*Options` setters and `OpenAiChatOptions.AbstractBuilder#combineWith` fix (#6045, #6042) — we always use builders and don't override OpenAI options at request time.
+- New `ToolSpec` fluent API (#6085) — additive; we keep using `@Tool` + `MethodToolCallbackProvider` + `FunctionToolCallback.builder()`. Documenting `ToolSpec` in Stage 5 docs is left as a follow-up.
+- Per-call `customHeaders` not propagated in `OpenAiImageOptions` (#6082), Docker Model Runner fix (#6036), Redis vector store fix (#5998), recursive `$ref` resolution (#5888), `WebFluxSseClientTransport` validator (#5967), Google GenAI start.spring.io fix (#6005) — none of these surfaces are exercised by this workshop.
+
+### Reactor verify
+- `./mvnw clean verify` — 42 modules, BUILD SUCCESS, all tests pass, no new deprecation warnings on the four watched surfaces (`ToolCallAdvisor`, `SSE`, `Streamable`, `ChatOptions`). Wall-clock ~14s.
+
 ## [2.3.5] - 2026-05-10
 
 ### Added
