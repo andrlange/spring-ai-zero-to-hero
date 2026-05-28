@@ -26,6 +26,12 @@
 ### Reactor verify
 - `./mvnw clean verify` — 42 modules, BUILD SUCCESS, all tests pass, no new deprecation warnings on the four watched surfaces (`ToolCallAdvisor`, `SSE`, `Streamable`, `ChatOptions`). Wall-clock ~14s.
 
+### Post-merge fix — Spring AI M7 mcp-client packaging bug
+- **Issue:** Spring AI 2.0.0-M7's `spring-ai-autoconfigure-mcp-client-httpclient` references classes in `org.springframework.ai.mcp.client.common.autoconfigure.*` — but that artifact (`spring-ai-autoconfigure-mcp-client-common`) was not published for M7. Every provider app crashes at startup with `ClassNotFoundException: McpSseClientProperties` BEFORE `@ConditionalOnProperty` is evaluated (so `enabled=false` does not work). Reactor `mvn clean verify` did not catch this — unit tests use sliced contexts that don't load MCP autoconfig.
+- **Workaround applied** (commit `968807b`): added `spring.autoconfigure.exclude` for both `SseHttpClientTransportAutoConfiguration` and `StreamableHttpHttpClientTransportAutoConfiguration` to each of the 6 provider `application.yaml` files. Verified post-fix with the original failing scenario (`spring-boot:run -pl applications/provider-ollama -Dspring-boot.run.profiles=pgvector,observation,ui,spy`) — boot completes cleanly in ~3 seconds.
+- **Followup for 2.0.0-GA / M7.1:** see `SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md` Part 5b — remove the exclude block once upstream republishes the missing `mcp-client-common` artifact (or inlines/relocates the property classes into `mcp-client-httpclient`). Upstream bug reported.
+- **Known limitation:** the standalone `mcp/03-mcp-client` demo module consumes the auto-wired beans the exclude removes and is expected to fail to boot on M7. The dashboard's MCP Inspector (which is the path attendees actually exercise) builds clients manually and is unaffected.
+
 ## [2.3.5] - 2026-05-10
 
 ### Added

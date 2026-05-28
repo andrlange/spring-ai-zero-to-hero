@@ -21,6 +21,7 @@
 | 🟥 **HIGH** | **`ToolCallAdvisor` becomes the default tool-call management** (#5459 + #6096 + #6111) | **Yes — behavioral.** All 4 tool-using surfaces (chat_05 demos, both agentic Agent classes, 2 MCP client modules, dashboard McpInspector) execute tools through the advisor chain instead of the internal model loop. Observability traces (Stage 8 / Grafana) change shape. | **Smoke-test heavy.** No code change *required* but must verify behavior and update Stage 8 dashboard/doc if trace shape changed. |
 | 🟨 **LOW** | **MCP Java SDK 2.0.0-M2 → 2.0.0-M3 — breaking API changes** (#6121) | **No, after audit.** M3's four named breaking changes are (a) `ResourceReference` record reduced `(type, uri)` → `(uri)` — we already use single-arg at `ClientSse.java:94`; (b) `PromptReference.equals/hashCode` key on name only — we construct but never use as map/set key; (c) `CompleteReference.identifier()` deprecated — we don't import it; (d) `CreateMessageRequest.maxTokens` / `CreateMessageResult.model` mandatory — we don't construct either. The catch-all "builders now require mandatory args in factory method" is also satisfied — all our call sites (`McpClient.sync(transport)`, `HttpClientStreamableHttpTransport.builder(url)`) already pass the mandatory arg in the factory. | Compile-test only — Task 2 below is conditional on a compile failure that we **do not expect**. |
 | 🟧 **MEDIUM** | **Deprecate SSE transports; Streamable HTTP becomes default server protocol** (#5969) | **No effect on code paths.** All 4 MCP servers (`02`, `04-server`, `05`) already pin `protocol: STREAMABLE` + `streamable-http.mcp-endpoint`; the `01` server is `stdio`; no server uses SSE. **One cleanup:** the deprecated SSE classes our test code does *not* import shouldn't surface, but the misleadingly-named `ClientSse.java` in `mcp/05-mcp-capabilities/src/test/...` (already uses `HttpClientStreamableHttpTransport` internally — naming-only) is worth flagging in docs. | Doc-only; verify warnings during `mvn verify`. |
+| 🟥 **HIGH (discovered post-bump)** | **`spring-ai-autoconfigure-mcp-client-common` artifact missing from M7 publication** | **Yes — runtime crash.** The M7 `spring-ai-autoconfigure-mcp-client-httpclient` jar's autoconfigs reference classes in the unpublished `mcp-client-common` artifact; every provider app crashes at startup with `ClassNotFoundException: McpSseClientProperties` (BEFORE `@ConditionalOnProperty` is evaluated, so `enabled=false` does not help). Reactor `mvn clean verify` did not catch this — unit tests use sliced contexts that don't load MCP autoconfig. | **See Part 5b below.** Workaround applied: `spring.autoconfigure.exclude` in each of the 6 provider yamls. Upstream bug reported; remove the workaround when GA / M7.1 ships the missing artifact. |
 | 🟧 **MEDIUM** | **Validation of vector dimensions for PgVector** (#4868) | **Likely no-op, must verify.** Per-provider dimensions in `application.yaml` (`openai`, `azure` → 1536 for `text-embedding-3-small`; `ollama` → 768 for `nomic-embed-text`) already match what each embedding model returns. New validation should pass; if it doesn't, that's a pre-existing bug we want to know about. | Smoke-test each pgvector provider's `embed/04/store` endpoint. |
 | 🟨 **LOW** | **`ChatOptions` setters removed** (#6025) | **No-op.** Per `SPRING_AI_M5_TO_M6_MIGRATION.md` §1.3 the codebase was already migrated to `ChatOptions.Builder` everywhere in M5. Verified by `grep`: no `setMaxTokens`/`setTemperature`/`setTopP`/`setModel`/`setMaxToolCalls` calls outside Spring AI internals. | Verify with grep. |
 | 🟨 **LOW** | **`ChatClient#prompt` ignores chat options from prompt** — fix (#6072) | **No-op (verify).** Bug fix: previously, options on a `Prompt` instance were silently dropped. We pass options via `.options(builder)` on the request spec, not via `new Prompt(text, options)`. Sweep confirms no `new Prompt(..., options)` call sites. | Verify with grep. |
@@ -805,6 +806,88 @@ grep -rn "PromptChatMemoryAdvisor\|MessageChatMemoryAdvisor.Builder.conversation
 | `NoSuchMethodError com.google.protobuf...` in `provider-google` | New Google BOM shifted protobuf transitive | `applications/provider-google/pom.xml` overrides |
 | Stage 8 Grafana panels empty | Span names changed under new `ToolCallAdvisor` default | `docker/observability-stack/grafana/dashboards/spring-ai-workshop-overview.json` panel queries |
 | Infinite loop in `model-directed-loop` agent | M7 default broke the agent's reinvocation signal | `agentic-system/02-model-directed-loop/.../Agent.java`; do **not** disable the new default — file an issue |
+
+---
+
+## Part 5b — POST-MERGE FIX: Spring AI M7 mcp-client packaging bug
+
+> **READ THIS FIRST when bumping to 2.0.0-GA (or any later milestone).** The workaround below was added AFTER the initial M6 → M7 bump merged, in commit `968807b` on the same branch. It needs to be **removed once upstream ships the fix** — keeping a stale `spring.autoconfigure.exclude` in 6 yaml files is exactly the kind of crud that accumulates if you forget.
+
+### The bug
+
+Spring AI 2.0.0-M7 ships a broken `spring-ai-autoconfigure-mcp-client-httpclient` jar. Both of its `@AutoConfiguration` classes —
+
+- `org.springframework.ai.mcp.client.httpclient.autoconfigure.SseHttpClientTransportAutoConfiguration`
+- `org.springframework.ai.mcp.client.httpclient.autoconfigure.StreamableHttpHttpClientTransportAutoConfiguration`
+
+— are annotated with `@EnableConfigurationProperties({ McpSseClientProperties.class, McpClientCommonProperties.class })` etc., referencing classes in the package `org.springframework.ai.mcp.client.common.autoconfigure.properties.*`. Those classes lived in `spring-ai-autoconfigure-mcp-client-common` for M3–M6, but **that artifact was not published for M7** (Spring milestone repo returns 404 for the M7 GAV). The two autoconfigs are listed in `AutoConfiguration.imports` and load unconditionally; the registrar throws `ClassNotFoundException` **before** `@ConditionalOnProperty(name="spring.ai.mcp.client.enabled")` is evaluated, so the conventional `enabled=false` escape hatch does not work.
+
+Affects every provider app in this workshop: `provider-ollama`, `-openai`, `-anthropic`, `-azure`, `-aws`, `-google` (all of them inherit `spring-ai-starter-mcp-client` transitively via `components/config-dashboard`).
+
+Reported upstream to Christian Tzolov (workshop maintainer's colleague on the Spring AI team) on 2026-05-28; awaiting fix in M7.1 / M8 / GA.
+
+### The workaround (currently in place)
+
+Each provider's main `application.yaml` carries a top-level `spring.autoconfigure.exclude` block:
+
+```yaml
+spring:
+  autoconfigure:
+    exclude:
+      # Spring AI 2.0.0-M7 packaging bug — these autoconfigs reference classes in the
+      # unpublished spring-ai-autoconfigure-mcp-client-common artifact and crash at startup.
+      # Workshop's MCP Inspector builds clients manually so it does not need them.
+      - org.springframework.ai.mcp.client.httpclient.autoconfigure.SseHttpClientTransportAutoConfiguration
+      - org.springframework.ai.mcp.client.httpclient.autoconfigure.StreamableHttpHttpClientTransportAutoConfiguration
+```
+
+Why it works: `spring.autoconfigure.exclude` is consumed by `AutoConfigurationImportSelector` BEFORE the annotation-driven `EnableConfigurationPropertiesRegistrar` runs on the imported configs — the broken classes never reach the registrar, so the missing-class lookup never fires.
+
+Why excluding the autoconfigs is safe for the workshop: the only consumer of MCP client beans in the providers is the dashboard's `McpInspectorController` + `McpClientRegistry`, and both build `McpSyncClient` instances manually via `McpClient.sync(transport)` / `SyncMcpToolCallbackProvider.builder()`. They do not depend on the auto-wired `McpAsyncClient` / `McpSyncClient` beans that the excluded autoconfigs would have produced.
+
+What is NOT covered: the standalone `mcp/03-mcp-client` demo module **does** consume the auto-wired beans (it injects `ToolCallbackProvider tools` and uses `spring.ai.mcp.client.stdio.servers-configuration` config). That module is **expected to fail to boot on M7** until upstream ships the fix; it is not used by the dashboard at runtime, so the workshop's main paths still work.
+
+### Verification that the workaround holds
+
+Run the user's actual failure scenario (4 profiles, the same combination that originally crashed):
+
+```bash
+./mvnw spring-boot:run -pl applications/provider-ollama \
+  -Dspring-boot.run.profiles=pgvector,observation,ui,spy
+```
+
+Expected: a normal Spring Boot banner followed by `Started OllamaApplication in N seconds`, Tomcat on :8080, PostgreSQL HikariCP up, PgVectorStore initialized. The workaround was verified post-fix on 2026-05-28 — full boot in 2.972 seconds with the 4-profile combination.
+
+### What to do when bumping to 2.0.0-GA (or any later milestone)
+
+The workaround is technical debt — when upstream fixes the packaging, the exclude block should come out. Concrete checklist for the next bumper:
+
+- [ ] **First step of the next bump:** check whether `spring-ai-autoconfigure-mcp-client-common` is published for the target version:
+  ```bash
+  curl -sI https://repo.spring.io/release/org/springframework/ai/spring-ai-autoconfigure-mcp-client-common/<VERSION>/spring-ai-autoconfigure-mcp-client-common-<VERSION>.jar
+  ```
+  HTTP 200 ⇒ upstream fix shipped, the exclude can be removed. HTTP 404 ⇒ still broken; keep the exclude.
+
+- [ ] If the artifact is published OR the autoconfig in `spring-ai-autoconfigure-mcp-client-httpclient` no longer references `org.springframework.ai.mcp.client.common.autoconfigure.*` (alternative upstream fix where the properties were relocated/inlined), remove the `spring.autoconfigure.exclude` block from all 6 provider `application.yaml` files in the same commit as the BOM bump. Touch only those 6 files for this cleanup — do not blanket-edit other yaml.
+
+- [ ] Boot at least one provider with the original failing profile combination (`pgvector,observation,ui,spy`) to confirm the upstream fix landed and the workaround is no longer needed.
+
+- [ ] If `mcp/03-mcp-client` was disabled / annotated as broken during the M7 era, re-enable / re-test it in the new bump.
+
+- [ ] Remove this Part 5b section (or move it to the post-mortem record) once the workaround is gone — keeping it around after it stops applying just creates noise for the bumper after that.
+
+### Affected files (workshop side)
+
+Touched in commit `968807b`:
+
+- `applications/provider-ollama/src/main/resources/application.yaml`
+- `applications/provider-openai/src/main/resources/application.yaml`
+- `applications/provider-anthropic/src/main/resources/application.yaml`
+- `applications/provider-azure/src/main/resources/application.yaml`
+- `applications/provider-aws/src/main/resources/application.yaml`
+- `applications/provider-google/src/main/resources/application.yaml`
+
+Each has the same 7-line `spring.autoconfigure.exclude` block added at the top of the main `spring:` document (before any `---`-separated profile blocks).
 
 ---
 
