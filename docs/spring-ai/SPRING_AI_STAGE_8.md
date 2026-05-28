@@ -114,6 +114,17 @@ HTTP Request: GET /rag/01/query?topic=bikes
     └── Spring AI auto-instrumented: EmbeddingModel.embed
 ```
 
+> **Spring AI 2.0.0-M7 callout — extra span around tool calls.** Since M7, `ToolCallAdvisor` is the default tool-call manager (see [INTRODUCTION → Advisors and Request Context](SPRING_AI_INTRODUCTION.md#advisors-and-request-context)). Tool invocations now flow through the advisor chain, so the trace tree gains a `tool.call.advisor` wrapper span around each tool call. Stage 1 tool-calling demos (`chat_05/*`) show this most clearly — a request like `/chat/05/tool/time` produces a tree like:
+>
+> ```
+> @TracedEndpoint: "GET /chat/05/tool/time" (SERVER)
+> └── Spring AI auto-instrumented: ChatClient.call
+>     └── tool.call.advisor                  ← NEW in M7
+>         └── tool.execution: TimeTools.getTime
+> ```
+>
+> The exact span names may shift between milestones; what's stable is that *one extra nesting level* now sits between the `ChatClient` span and your `@Tool` method. No code change needed — the extra spans appear automatically as long as you're on M7+.
+
 ### Annotation Details
 
 ```java

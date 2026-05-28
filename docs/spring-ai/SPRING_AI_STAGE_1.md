@@ -52,6 +52,7 @@ After completing this stage, developers will be able to:
 | `@Tool` | `o.s.ai.tool.annotation.Tool` | Marks a method as callable by the AI model |
 | `@ToolParam` | `o.s.ai.tool.annotation.ToolParam` | Describes a tool method parameter |
 | `FunctionToolCallback` | `o.s.ai.tool.function.FunctionToolCallback` | Programmatic tool registration via Spring beans |
+| `ToolSpec` *(M7+)* | `o.s.ai.tool.ToolSpec` | Fluent declarative API for defining tools without writing a callback or annotating a method — new in Spring AI 2.0.0-M7 (#6085). Useful when the tool is data-driven or built from configuration. The workshop's `chat_05` demos still use `@Tool` and `FunctionToolCallback` (which remain supported); `ToolSpec` is shown here as an alternative pattern attendees may encounter in newer Spring AI samples. |
 
 > **Notation:** `o.s.ai` = `org.springframework.ai`
 
