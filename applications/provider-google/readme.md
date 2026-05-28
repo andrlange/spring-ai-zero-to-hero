@@ -1,6 +1,6 @@
 # Google GenAI (Gemini)
 
-**Spring Boot 4.0.6 | Spring AI 2.0.0-M7 | spring-ai-starter-model-google-genai**
+**Spring Boot 4.0.6 | Spring AI 2.0.0-M8 | spring-ai-starter-model-google-genai**
 
 All 13 chat endpoints pass with Gemini 2.5 Flash.
 

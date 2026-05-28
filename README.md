@@ -4,11 +4,11 @@
   <img src="docs/assets/workshop.png" alt="Spring AI — From Zero To Hero" width="50%">
 </p>
 
-> **Spring Boot 4.0.6 | Spring AI 2.0.0-M7 | Java 25**
+> **Spring Boot 4.0.6 | Spring AI 2.0.0-M8 | Java 25**
 >
 > A hands-on workshop for building AI-powered applications with Spring AI. Covers chat, embeddings, vector stores, RAG, tool calling, MCP, agentic patterns, and observability — across 6 AI providers.
 
-> ⚠️ **Recently upgraded Spring AI 2.0.0-M6 → 2.0.0-M7.** A quiet bump on the audit surface — `ToolCallAdvisor` is now the default tool-call manager, MCP Java SDK 2.0.0-M3 absorbed cleanly, SSE transports deprecated in favour of Streamable HTTP — all with **zero application-code changes**. One runtime-only packaging bug surfaced (M7 ships `spring-ai-autoconfigure-mcp-client-httpclient` referencing a `mcp-client-common` artifact that wasn't published) and is worked around via `spring.autoconfigure.exclude` in each provider's `application.yaml`; revisit at the 2.0.0-GA bump. Full breakdown with impact analysis and the GA-cleanup checklist: **[SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md](SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md)**. Prior records: **[SPRING_AI_M5_TO_M6_MIGRATION.md](SPRING_AI_M5_TO_M6_MIGRATION.md)** and **[SPRING_AI_M4_TO_M5_MIGRATION.md](SPRING_AI_M4_TO_M5_MIGRATION.md)**.
+> ⚠️ **Recently upgraded Spring AI 2.0.0-M7 → 2.0.0-M8.** A fix-focused release — M8 #6138 restored the missing `spring-ai-autoconfigure-mcp-client-common` transitive dependency that broke every provider boot under M7, plus three regression fixes for pgvector (#6164), Google GenAI starter deps (#6171), and OpenAI session-auth (#6150). The workshop's M7 `spring.autoconfigure.exclude` workaround has been **removed**; providers boot cleanly on M8 with zero application-code changes. Full breakdown: **[SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md](SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md)**. Prior records: **[SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md](SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md)**, **[SPRING_AI_M5_TO_M6_MIGRATION.md](SPRING_AI_M5_TO_M6_MIGRATION.md)**, **[SPRING_AI_M4_TO_M5_MIGRATION.md](SPRING_AI_M4_TO_M5_MIGRATION.md)**.
 
 ## What You'll Learn — 8 Stages
 

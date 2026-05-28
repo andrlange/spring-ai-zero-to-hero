@@ -552,13 +552,17 @@
       bullets:['Enhanced observability across chat + tool calling','Immutable builders everywhere','Explicit chat-memory conversation IDs'] },
 
     { id:'v2.0.0-M7', date:'2026-05-22', type:'spring-ai', version:'v2.0.0', badge:'M7',
-      title:'Where we are today',
+      title:'ToolCallAdvisor default + MCP SDK M3',
       bullets:['ToolCallAdvisor is the default tool-call manager','MCP Java SDK 2.0.0-M3 + Streamable HTTP default','PgVector dimension validation; CosmosDB removed'] },
+
+    { id:'v2.0.0-M8', date:'2026-05-27', type:'spring-ai', version:'v2.0.0', badge:'M8',
+      title:'Where we are today',
+      bullets:['Restored mcp-client-common transitive dep (#6138)','PgVector starter pulls spring-boot-starter-jdbc','Cleaned Google GenAI + session-auth regressions'] },
   ];
 
   // World state
   const WORLD_START = 0;
-  const WORLD_END = 14840;            // 720 + 37 entries × 360 + 800; tuned in Task 6
+  const WORLD_END = 15200;            // 720 + 38 entries × 360 + 800; tuned in Task 6
   const SCROLL_SENSITIVITY = 1.4;     // wheel delta multiplier
   const STEP_FRAME_MS = 140;          // walk animation tempo
 
@@ -765,7 +769,7 @@
         panelTitle.textContent = 'Build the next agentic app with Spring AI';
         panelBullets.innerHTML =
           '<li>You walked through 30+ releases</li>' +
-          '<li>Spring AI 2.0.0-M7 is the foundation</li>' +
+          '<li>Spring AI 2.0.0-M8 is the foundation</li>' +
           '<li>Open the workshop dashboard and start shipping</li>';
         panel.classList.remove('eco');
         panel.classList.add('open');
