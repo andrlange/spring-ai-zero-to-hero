@@ -1,6 +1,6 @@
 # Windows 11 Setup Guide — Spring AI Zero-to-Hero Workshop
 
-> **Target stack:** Spring Boot 4.0.6 | Spring AI 2.0.0-M6 | Java 25 | Maven 3.9.14
+> **Target stack:** Spring Boot 4.0.6 | Spring AI 2.0.0-M7 | Java 25 | Maven 3.9.14
 >
 > This guide uses **WSL2 with Ubuntu 24.04** as the primary environment.
 > All workshop scripts run natively inside WSL2 — no PowerShell ports needed.

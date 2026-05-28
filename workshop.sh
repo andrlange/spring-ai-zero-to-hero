@@ -2,7 +2,7 @@
 # ============================================================
 # workshop.sh — Spring AI Zero-to-Hero Workshop Helper
 #
-# Tech Stack: Spring Boot 4.0.6 | Spring AI 2.0.0-M6 | Java 25
+# Tech Stack: Spring Boot 4.0.6 | Spring AI 2.0.0-M7 | Java 25
 #
 # Compatibility: macOS (bash 3.2+) and Linux (bash 4+).
 # Always invoked via bash shebang — works regardless of login shell.
@@ -898,7 +898,7 @@ ollama_up() {
 cmd_check() {
     echo ""
     echo -e "${BOLD}Spring AI Zero-to-Hero — Prerequisite Check${NC}"
-    echo -e "Tech Stack: Spring Boot 4.0.6 | Spring AI 2.0.0-M6 | Java 25"
+    echo -e "Tech Stack: Spring Boot 4.0.6 | Spring AI 2.0.0-M7 | Java 25"
     echo "──────────────────────────────────────────────"
 
     header "Java"
@@ -1591,7 +1591,7 @@ cmd_logs() {
 cmd_help() {
     echo ""
     echo -e "${BOLD}Spring AI Zero-to-Hero Workshop${NC} ${CYAN}v${WORKSHOP_VERSION}${NC}"
-    echo -e "Boot 4.0.6 | AI 2.0.0-M6 | Java 25"
+    echo -e "Boot 4.0.6 | AI 2.0.0-M7 | Java 25"
     echo ""
     echo -e "${BOLD}Usage:${NC}"
     echo "  ./workshop.sh [command] [options]"
@@ -1908,7 +1908,7 @@ draw_menu() {
     clear
     echo -e "${BOLD}${CYAN}┌──────────────────────────────────────────────────────────┐${NC}"
     echo -e "${BOLD}${CYAN}│${NC}  ${BOLD}Spring AI Zero-to-Hero Workshop${NC}  ${CYAN}v${WORKSHOP_VERSION}${NC}                 ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  Boot 4.0.6 | AI 2.0.0-M6 | Java 25                      ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  Boot 4.0.6 | AI 2.0.0-M7 | Java 25                      ${BOLD}${CYAN}│${NC}"
     echo -e "${BOLD}${CYAN}├──────────────────────────────────────────────────────────┘${NC}"
     echo -e "${BOLD}${CYAN}│${NC}  Creds:   $(creds_status_line)"
     echo -e "${BOLD}${CYAN}│${NC}  State:   $(services_status_line_app)"

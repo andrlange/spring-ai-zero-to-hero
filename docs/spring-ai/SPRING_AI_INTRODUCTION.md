@@ -1,6 +1,6 @@
 # Spring AI Introduction
 
-**Spring AI Version:** 2.0.0-M6
+**Spring AI Version:** 2.0.0-M7
 **Spring Boot Version:** 4.0.6
 **Java Version:** 25
 
@@ -102,7 +102,7 @@ spring:                         Reads properties → creates:
         model: gpt-4o-mini
 ```
 
-Each provider has its own Spring Boot starter that auto-configures the correct implementation. The table below uses the **Spring AI 2.0.0-M6** artifact names; if you see older names like `spring-ai-<provider>-spring-boot-starter` floating around the web, those are the pre-2.0 convention.
+Each provider has its own Spring Boot starter that auto-configures the correct implementation. The table below uses the **Spring AI 2.0.0-M7** artifact names; if you see older names like `spring-ai-<provider>-spring-boot-starter` floating around the web, those are the pre-2.0 convention.
 
 | Provider | Maven Starter (M5) | ChatModel Implementation |
 |----------|--------------------|--------------------------|
@@ -365,7 +365,7 @@ This requires the model to reliably produce valid JSON. Larger models (GPT-4o, C
 
 ### Supported Providers in This Workshop
 
-Artifact names are the **Spring AI 2.0.0-M6** ones. See note ¹ above on Azure and ² on Google.
+Artifact names are the **Spring AI 2.0.0-M7** ones. See note ¹ above on Azure and ² on Google.
 
 | Provider | Starter Dependency (M5) | Default Model | Local/Cloud |
 |----------|-------------------------|---------------|-------------|
