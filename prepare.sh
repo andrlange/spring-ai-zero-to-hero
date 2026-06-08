@@ -68,7 +68,7 @@ SKIP_PETCLINIC="$(ask "Skip Slide 30 — Live Coding Demo (Spring AI Petclinic)?
 
 # 4. Optional version overrides
 SB_VERSION="$(ask "Spring Boot version" "4.0.6")"
-SAI_VERSION="$(ask "Spring AI version"   "2.0.0-M8")"
+SAI_VERSION="$(ask "Spring AI version"   "2.0.0-RC1")"
 JAVA_VERSION="$(ask "Java version"        "25")"
 
 # Reset to baseline so the script is idempotent across runs.
@@ -112,7 +112,7 @@ content = replace_once(
 
 # Version numbers (each currently appears exactly once in slides.html)
 content = replace_once(content, "Spring Boot 4.0.6", f"Spring Boot {sb}",   "Spring Boot version")
-content = replace_once(content, "Spring AI 2.0.0-M8", f"Spring AI {sai}",   "Spring AI version")
+content = replace_once(content, "Spring AI 2.0.0-RC1", f"Spring AI {sai}",   "Spring AI version")
 content = replace_once(content, "Java 25",            f"Java {jv}",         "Java version")
 
 # Optionally drop Slide 30 (Petclinic live-coding demo) — delete from the
