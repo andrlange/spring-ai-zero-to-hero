@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.tool.function.FunctionToolCallback;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/chat/05")
 class ToolController {
   private final ChatClient chatClient;
+  private final FunctionToolCallback weatherTool;
 
-  public ToolController(ChatClient.Builder builder) {
+  public ToolController(ChatClient.Builder builder, FunctionToolCallback weatherFunctionCallback) {
     this.chatClient = builder.build();
+    this.weatherTool = weatherFunctionCallback;
   }
 
   @Operation(
@@ -104,7 +107,7 @@ class ToolController {
 
     return chatClient
         .prompt()
-        .toolNames("weatherFunction")
+        .tools(this.weatherTool)
         .user(
             u ->
                 u.text(
@@ -136,7 +139,7 @@ class ToolController {
 
     return chatClient
         .prompt()
-        .toolNames("weatherFunction")
+        .tools(this.weatherTool)
         .user(
             u ->
                 u.text(
