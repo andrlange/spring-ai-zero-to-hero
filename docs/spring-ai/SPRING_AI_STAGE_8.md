@@ -114,16 +114,18 @@ HTTP Request: GET /rag/01/query?topic=bikes
     └── Spring AI auto-instrumented: EmbeddingModel.embed
 ```
 
-> **Callout — extra span around tool calls.** Since M7, the tool-call advisor is the default tool-call manager (see [INTRODUCTION → Advisors and Request Context](SPRING_AI_INTRODUCTION.md#advisors-and-request-context)); RC1 renamed the class `ToolCallAdvisor` → `ToolCallingAdvisor` (#6303) and made it the sole tool-execution path after the built-in `ChatModel` loop was removed. Tool invocations flow through the advisor chain, so the trace tree gains a `tool.call.advisor` wrapper span around each tool call. Stage 1 tool-calling demos (`chat_05/*`) show this most clearly — a request like `/chat/05/tool/time` produces a tree like:
+> **Callout — extra span around tool calls.** Since M7, the tool-call advisor is the default tool-call manager (see [INTRODUCTION → Advisors and Request Context](SPRING_AI_INTRODUCTION.md#advisors-and-request-context)); RC1 renamed the class `ToolCallAdvisor` → `ToolCallingAdvisor` (#6303) and made it the sole tool-execution path after the built-in `ChatModel` loop was removed. Tool invocations flow through the advisor chain, so the trace tree gains a wrapper span around each tool call. Stage 1 tool-calling demos (`chat_05/*`) show this most clearly — a request like `/chat/05/time` produces a tree like this on RC1 (span names verified against Tempo):
 >
 > ```
-> @TracedEndpoint: "GET /chat/05/tool/time" (SERVER)
-> └── Spring AI auto-instrumented: ChatClient.call
->     └── tool.call.advisor                  ← NEW in M7
->         └── tool.execution: TimeTools.getTime
+> GET /chat/05/time                       (SERVER, @TracedEndpoint)
+> └── spring_ai chat_client
+>     └── tool_calling                     ← the ToolCallingAdvisor wrapper span
+>         ├── call → chat qwen3 → http post          (first model round-trip)
+>         └── execute_tool currentTimeIn   ← the @Tool method
+>             └── call → chat qwen3 → http post      (second round-trip with the tool result)
 > ```
 >
-> The exact span names may shift between milestones; what's stable is that *one extra nesting level* now sits between the `ChatClient` span and your `@Tool` method. No code change needed — the extra spans appear automatically as long as you're on M7+.
+> Span names shift between milestones — on M7 the wrapper was `tool.call.advisor`; on RC1 it is **`tool_calling`** and the execution span is **`execute_tool <toolName>`**. What's stable is that *one extra nesting level* sits between the `ChatClient` span and your `@Tool` method. No code change needed — the spans appear automatically as long as you're on M7+.
 
 ### Annotation Details
 
