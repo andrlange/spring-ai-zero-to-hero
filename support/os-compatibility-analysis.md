@@ -1,7 +1,7 @@
 # OS Compatibility Analysis — Spring AI Zero-to-Hero Workshop
 
 > **Date:** 2026-04-07
-> **Target stack:** Spring Boot 4.0.6 | Spring AI 2.0.0-M8 | Java 25 | Maven 3.9.14
+> **Target stack:** Spring Boot 4.0.6 | Spring AI 2.0.0-RC1 | Java 25 | Maven 3.9.14
 
 ---
 

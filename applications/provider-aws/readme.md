@@ -1,6 +1,6 @@
 # AWS Bedrock
 
-**Spring Boot 4.0.6 | Spring AI 2.0.0-M8 | spring-ai-starter-model-bedrock-converse**
+**Spring Boot 4.0.6 | Spring AI 2.0.0-RC1 | spring-ai-starter-model-bedrock-converse**
 
 To run the sample application you will need AWS credentials configured.
 AWS Bedrock uses your AWS IAM credentials, not a separate API key.

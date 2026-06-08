@@ -4,11 +4,11 @@
   <img src="docs/assets/workshop.png" alt="Spring AI — From Zero To Hero" width="50%">
 </p>
 
-> **Spring Boot 4.0.6 | Spring AI 2.0.0-M8 | Java 25**
+> **Spring Boot 4.0.6 | Spring AI 2.0.0-RC1 | Java 25**
 >
 > A hands-on workshop for building AI-powered applications with Spring AI. Covers chat, embeddings, vector stores, RAG, tool calling, MCP, agentic patterns, and observability — across 6 AI providers.
 
-> ⚠️ **Recently upgraded Spring AI 2.0.0-M7 → 2.0.0-M8.** A fix-focused release — M8 #6138 restored the missing `spring-ai-autoconfigure-mcp-client-common` transitive dependency that broke every provider boot under M7, plus three regression fixes for pgvector (#6164), Google GenAI starter deps (#6171), and OpenAI session-auth (#6150). The workshop's M7 `spring.autoconfigure.exclude` workaround has been **removed**; providers boot cleanly on M8 with zero application-code changes. Full breakdown: **[SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md](SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md)**. Prior records: **[SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md](SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md)**, **[SPRING_AI_M5_TO_M6_MIGRATION.md](SPRING_AI_M5_TO_M6_MIGRATION.md)**, **[SPRING_AI_M4_TO_M5_MIGRATION.md](SPRING_AI_M4_TO_M5_MIGRATION.md)**.
+> ⚠️ **Recently upgraded Spring AI 2.0.0-M8 → 2.0.0-RC1.** The first release candidate is a **breaking** one. Three workshop code/build changes were required: `ChatClient.prompt().toolNames(...)` was removed (#6301/#6154 — `chat_05` now passes the `FunctionToolCallback` bean to `.tools(...)`), `ImageOptionsBuilder.N()` was renamed to `.n()` (#6285), and the vector-store advisor artifact was renamed `spring-ai-advisors-vector-store` → `spring-ai-vector-store-advisor` (#6309). RC1 also removed the `ToolSpec` consumer API (#6292), renamed `ToolCallAdvisor` → `ToolCallingAdvisor` (#6303), dropped the built-in tool-execution loop from every `ChatModel` (#6252–#6272 — tool calling now flows exclusively through `ChatClient`), and upgraded the MCP Java SDK to 2.0.0-RC1 (#6287). All 42 modules build green and the migrated endpoints were runtime-verified. Full breakdown: **[SPRING_AI_M8_TO_RC1_UPGRADE_PLAN.md](SPRING_AI_M8_TO_RC1_UPGRADE_PLAN.md)**. Prior records: **[SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md](SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md)**, **[SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md](SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md)**, **[SPRING_AI_M5_TO_M6_MIGRATION.md](SPRING_AI_M5_TO_M6_MIGRATION.md)**, **[SPRING_AI_M4_TO_M5_MIGRATION.md](SPRING_AI_M4_TO_M5_MIGRATION.md)**.
 
 ## What You'll Learn — 8 Stages
 
