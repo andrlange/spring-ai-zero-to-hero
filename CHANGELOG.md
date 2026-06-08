@@ -7,6 +7,7 @@
 - **`chat_05/ToolController` migrated off the removed `toolNames()` API.** The `weatherFunction` `FunctionToolCallback` bean is now injected into the controller and passed explicitly via `.tools(this.weatherTool)` at the `/chat/05/weather` and `/chat/05/pack` endpoints (previously resolved by name through `SpringBeanToolCallbackResolver`). See #6301 / #6154 below.
 - **`image_01/ImageController`**: `ImageOptionsBuilder.builder().N(1)` → `.n(1)` (#6285).
 - **`components/patterns/02-retrieval-augmented-generation/pom.xml`**: advisor dependency `artifactId` renamed `spring-ai-advisors-vector-store` → `spring-ai-vector-store-advisor` (#6309, "Move advisors to their proper modules"; confirmed against the published RC1 BOM on Maven Central).
+- **Stage 7 agents (`01-inner-monologue`, `02-model-directed-loop`): `toolChoice("required")` → typed `ChatCompletionToolChoiceOption.ofAuto(Auto.REQUIRED)`.** RC1's `OpenAiChatModel.createRequest` throws `UnsupportedOperationException: SDK version does not support typed 'required' toolChoice` for the plain `"required"`/`"none"` strings (only `"auto"`, a named-function choice, or a pre-built typed `ChatCompletionToolChoiceOption` are accepted) — even though the shipped `openai-java-core` 4.38.0 supports `ofAuto(Auto.REQUIRED)`. This is an RC1 regression (M8 accepted the string); both agents forced `send_message` via the string and failed at runtime on the OpenAI provider. Updated the OpenAi option + controller-fixture tests to match. Found via manual Stage 7 runtime testing, not caught by the reactor build.
 - New `v2.0.0-RC1` (2026-06-06) entry added to the pixel-art Spring AI History timeline; M8 retitled from "Where we are today" to "MCP autoconfig packaging fixes".
 - Docs: retired the `ToolSpec` row from `SPRING_AI_STAGE_1.md` (consumer API removed in RC1, see #6292); `ToolCallAdvisor` → `ToolCallingAdvisor` prose in `SPRING_AI_INTRODUCTION.md` + `SPRING_AI_STAGE_8.md`.
 
@@ -32,6 +33,7 @@
 ### Reactor verify
 - `./mvnw clean verify` — 42 modules, BUILD SUCCESS, all tests pass (~17s).
 - Runtime smoke: `provider-ollama` (`ui` profile) — `Started OllamaApplication in 2.1 seconds`. Verified the migrated endpoints return tool-backed answers: `/chat/05/time`, `/chat/05/weather` + `/chat/05/pack` (both `toolNames()`→`.tools()` sites with the injected `FunctionToolCallback`), and `/rag/01/query` (renamed advisor artifact loads and runs through `RetrievalAugmentationAdvisor`).
+- Stage 7 runtime smoke (OpenAI profile): both agents return tool-backed responses with the typed `toolChoice` fix — inner-monologue (`/agents/inner-monologue/{id}/messages`) and model-directed-loop (`/agents/model-directed-loop/{id}/messages`), HTTP 200, `isFallback:false`, loop terminates.
 
 ## [2.3.7] - 2026-05-28
 
