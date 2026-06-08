@@ -1,13 +1,14 @@
 # Spring AI Introduction
 
-**Spring AI Version:** 2.0.0-M8
+**Spring AI Version:** 2.0.0-RC1
 **Spring Boot Version:** 4.0.6
 **Java Version:** 25
 
 > **⚠ Spring AI 2.0.0 milestone progression** — this workshop has tracked the Spring AI 2.0.0 milestone line closely. Highlights of the recent bumps:
 >
-> - **M7 → M8** *(current)* — fix-focused release; M8 #6138 restored the missing `spring-ai-autoconfigure-mcp-client-common` transitive dependency that broke every provider boot under M7. Plan: **[SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md](../../SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md)**.
-> - **M6 → M7** — `ToolCallAdvisor` became the default tool-call management option (see [Advisors and Request Context](#advisors-and-request-context) below); MCP Java SDK upgraded to 2.0.0-M3; SSE transports deprecated in favour of Streamable HTTP. Plan: **[SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md](../../SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md)**.
+> - **M8 → RC1** *(current)* — first release candidate; **breaking** tool-calling API cleanup: `toolNames()` + `SpringBeanToolCallbackResolver` removed (pass `ToolCallback` beans to `.tools(...)` instead), the `ToolSpec` consumer API removed, `ToolCallAdvisor` renamed to `ToolCallingAdvisor`, `ImageOptionsBuilder.N()` → `.n()`, the vector-store advisor module renamed (`spring-ai-advisors-vector-store` → `spring-ai-vector-store-advisor`), and MCP Java SDK upgraded to 2.0.0-RC1. Plan: **[SPRING_AI_M8_TO_RC1_UPGRADE_PLAN.md](../../SPRING_AI_M8_TO_RC1_UPGRADE_PLAN.md)**.
+> - **M7 → M8** — fix-focused release; M8 #6138 restored the missing `spring-ai-autoconfigure-mcp-client-common` transitive dependency that broke every provider boot under M7. Plan: **[SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md](../../SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md)**.
+> - **M6 → M7** — `ToolCallAdvisor` (renamed `ToolCallingAdvisor` in RC1) became the default tool-call management option (see [Advisors and Request Context](#advisors-and-request-context) below); MCP Java SDK upgraded to 2.0.0-M3; SSE transports deprecated in favour of Streamable HTTP. Plan: **[SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md](../../SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md)**.
 > - **M5 → M6** — chat-memory advisor API changed shape: `PromptChatMemoryAdvisor` removed, `MessageChatMemoryAdvisor.Builder.conversationId(String)` removed; conversation id now passed at request time via the `ChatMemory.CONVERSATION_ID` context key (see the M6 callout below). Doc: **[SPRING_AI_M5_TO_M6_MIGRATION.md](../../SPRING_AI_M5_TO_M6_MIGRATION.md)**.
 > - **M4 → M5** — Azure OpenAI dedicated module removed (Azure now flows through `spring-ai-openai` in "Microsoft Foundry" mode); `ChatClient.Builder.defaultOptions(...)` and `.options(...)` switched to `ChatOptions.Builder`; OpenAI module adopted the official `openai-java` SDK. Doc: **[SPRING_AI_M4_TO_M5_MIGRATION.md](../../SPRING_AI_M4_TO_M5_MIGRATION.md)**.
 >
@@ -109,7 +110,7 @@ spring:                         Reads properties → creates:
         model: gpt-4o-mini
 ```
 
-Each provider has its own Spring Boot starter that auto-configures the correct implementation. The table below uses the **Spring AI 2.0.0-M8** artifact names; if you see older names like `spring-ai-<provider>-spring-boot-starter` floating around the web, those are the pre-2.0 convention.
+Each provider has its own Spring Boot starter that auto-configures the correct implementation. The table below uses the **Spring AI 2.0.0-RC1** artifact names; if you see older names like `spring-ai-<provider>-spring-boot-starter` floating around the web, those are the pre-2.0 convention.
 
 | Provider | Maven Starter (M5) | ChatModel Implementation |
 |----------|--------------------|--------------------------|
@@ -209,7 +210,7 @@ Templates use the StringTemplate (ST4) engine. Variables are safely substituted 
 >
 > The same pattern applies to any advisor that reads from the context — set `.param(KEY, value)` on the `AdvisorSpec` either per call (`chatClient.prompt().advisors(spec -> spec.param(...))`) or as a default on the `ChatClient.Builder`. Stage 4 (chat memory) and Stage 7 (per-agent memory in the agentic system) walk through this in depth.
 
-> **Spring AI 2.0.0-M7 callout — `ToolCallAdvisor` is now the default tool-call manager.** In M6 and earlier, the `ChatClient` resolved `@Tool` / `FunctionToolCallback` invocations through an internal loop in `ChatModel`. In M7 the auto-configured `ChatClient.Builder` installs a `ToolCallAdvisor` by default — tool calls now flow through the advisor chain like memory and RAG do. Workshop impact is mostly invisible: code with `@Tool` annotations or `FunctionToolCallback` beans continues to work unchanged. The visible change is in Stage 8 (Observability): the trace tree gains a `tool.call.advisor` wrapper span around each tool invocation, so the Grafana span tree shows one more nesting level than under M6. No action required; just don't be surprised by the extra span. Related M7 fixes: `DefaultChatClient` now enforces the single-`ToolAdvisor` invariant (#6111), and an `Advisor` chained *after* `ToolCallAdvisor` no longer loses its custom observation (#5882).
+> **Tool-call manager callout — `ToolCallingAdvisor` is the default.** In M6 and earlier, the `ChatClient` resolved `@Tool` / `FunctionToolCallback` invocations through an internal loop in `ChatModel`. Since M7 the auto-configured `ChatClient.Builder` installs the tool-call advisor by default — tool calls now flow through the advisor chain like memory and RAG do. In RC1 (#6303) the class was **renamed** `ToolCallAdvisor` → `ToolCallingAdvisor` (a deprecated `ToolCallAdvisor` shim is retained for one release), and RC1 also **removed the built-in tool-execution loop from every `ChatModel`** (#6252–#6272) — so this advisor is now the sole path that auto-executes tools when you call through `ChatClient`. Workshop impact is mostly invisible: code with `@Tool` annotations or `FunctionToolCallback` beans continues to work unchanged. The visible change is in Stage 8 (Observability): the trace tree gains a wrapper span around each tool invocation, so the Grafana span tree shows one more nesting level than under M6. No action required; just don't be surprised by the extra span. Related fixes: `DefaultChatClient` enforces the single-tool-advisor invariant (#6111), and an `Advisor` chained *after* the tool-call advisor no longer loses its custom observation (#5882).
 
 ---
 
@@ -374,7 +375,7 @@ This requires the model to reliably produce valid JSON. Larger models (GPT-4o, C
 
 ### Supported Providers in This Workshop
 
-Artifact names are the **Spring AI 2.0.0-M8** ones. See note ¹ above on Azure and ² on Google.
+Artifact names are the **Spring AI 2.0.0-RC1** ones. See note ¹ above on Azure and ² on Google.
 
 | Provider | Starter Dependency (M5) | Default Model | Local/Cloud |
 |----------|-------------------------|---------------|-------------|

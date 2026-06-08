@@ -4,6 +4,7 @@ import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.openai.models.chat.completions.ChatCompletionToolChoiceOption;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.ChatOptions;
@@ -36,7 +37,10 @@ class InnerMonologueAgentControllerTest {
     @Bean
     ChatOptions.Builder chatOptions() {
       // Spring AI 2.0.0-M6: ChatClient.Builder.defaultOptions() takes a ChatOptions.Builder.
-      return OpenAiChatOptions.builder().toolChoice("required");
+      // Spring AI 2.0.0-RC1: pass the typed tool choice (the "required" string is rejected).
+      return OpenAiChatOptions.builder()
+          .toolChoice(
+              ChatCompletionToolChoiceOption.ofAuto(ChatCompletionToolChoiceOption.Auto.REQUIRED));
     }
   }
 

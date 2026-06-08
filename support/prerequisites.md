@@ -36,7 +36,7 @@ ollama pull llava
 | Component | Version |
 |-----------|---------|
 | Spring Boot | 4.0.6 |
-| Spring AI | 2.0.0-M8 |
+| Spring AI | 2.0.0-RC1 |
 | Java | 25 |
 | Maven | 3.9.14 (included via wrapper) |
 
