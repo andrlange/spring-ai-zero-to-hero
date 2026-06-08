@@ -1,5 +1,38 @@
 # Changelog — Spring AI Zero-to-Hero Workshop
 
+## [2.3.8] - 2026-06-08
+
+### Changed
+- Bumped Spring AI from `2.0.0-M8` → `2.0.0-RC1` across the parent POM, workshop docs, dashboard, slides (and `slides.html.original` baseline), Grafana dashboard, `workshop.sh` banners, OpenAPI metadata, and all provider/component readmes. **This is the first breaking bump since the Boot 4 / Spring AI 2.0-M4 migration** — three real code/build changes were required (below).
+- **`chat_05/ToolController` migrated off the removed `toolNames()` API.** The `weatherFunction` `FunctionToolCallback` bean is now injected into the controller and passed explicitly via `.tools(this.weatherTool)` at the `/chat/05/weather` and `/chat/05/pack` endpoints (previously resolved by name through `SpringBeanToolCallbackResolver`). See #6301 / #6154 below.
+- **`image_01/ImageController`**: `ImageOptionsBuilder.builder().N(1)` → `.n(1)` (#6285).
+- **`components/patterns/02-retrieval-augmented-generation/pom.xml`**: advisor dependency `artifactId` renamed `spring-ai-advisors-vector-store` → `spring-ai-vector-store-advisor` (#6309, "Move advisors to their proper modules"; confirmed against the published RC1 BOM on Maven Central).
+- New `v2.0.0-RC1` (2026-06-06) entry added to the pixel-art Spring AI History timeline; M8 retitled from "Where we are today" to "MCP autoconfig packaging fixes".
+- Docs: retired the `ToolSpec` row from `SPRING_AI_STAGE_1.md` (consumer API removed in RC1, see #6292); `ToolCallAdvisor` → `ToolCallingAdvisor` prose in `SPRING_AI_INTRODUCTION.md` + `SPRING_AI_STAGE_8.md`.
+
+### Removed (upstream — RC1 release-notes items relevant to us)
+- **#6301 / #6154 — `toolNames()` API and `SpringBeanToolCallbackResolver` removed.** Direct compile break in `chat_05/ToolController` (two call sites). Migrated to explicit `ToolCallback` beans passed via `.tools(...)`.
+- **#6285 — `N()` renamed to `n()` in options builders.** Direct compile break in `image_01/ImageController`.
+- **#6309 — Advisor modules moved/renamed.** Build break in the RAG pattern module — dependency `artifactId` renamed.
+- **#6292 — `ToolSpec` consumer API removed from `ChatClient`.** No code impact (we never used `o.s.ai.tool.ToolSpec`), but documentation referencing it (Stage 1) was retired. Note: the `SyncToolSpecification` references in `mcp/04` + Stage 6 are MCP SDK types, **not** the removed Spring AI `ToolSpec` — they remain.
+- **#6303 — `ToolCallAdvisor` renamed to `ToolCallingAdvisor`** (deprecated `ToolCallAdvisor` shim retained one release). No code impact — we use the auto-configured default, not a direct instantiation; prose updated.
+- **#6252–#6272 — Built-in tool-execution loop removed from every `ChatModel`** (OpenAI, Ollama, Anthropic, Mistral, DeepSeek, MiniMax, Bedrock proxy). No impact — all workshop tool calling flows through `ChatClient` / `ToolCallingAdvisor`, which is now the sole auto-execution path. Verified at runtime (below).
+- **#6289 — `internalToolExecutionEnabled` removed.** No-op — no usages in the codebase.
+- **#6290 / #6149 / #6210 — MiniMax dedicated support removed, Pixtral Large retired, deprecated Mistral models dropped.** No-op — none used by the workshop's 6 providers.
+
+### Other release-notes items not relevant here
+- **#6204 — `ChatClientCustomizer` deprecated/renamed → `ChatClientBuilderCustomizer`.** No-op — not used anywhere in the codebase.
+- **#6312 — Turn-boundary snapping in `MessageWindowChatMemory` eviction.** Automatic behavioural improvement; benefits Stage 4 chat-memory demos (eviction no longer splits a conversational turn). No API change.
+- **#5909 — Tool Search Tool advisor for on-demand tool discovery** (new `spring-ai-tool-search-*` modules, vector-store / Lucene / regex `ToolIndex` backends). Additive; not adopted — candidate future stage content.
+- **#6165 — `EntityParamSpec` for per-call structured output on `ChatClient.entity()`.** Additive; not adopted.
+- **#6280 — SLF4J replaced by `org.apache.commons.logging.LogFactory`** internally. No-op — our logging config is unaffected.
+- **#6194 / #5963 — DeepSeek V4 chat model constants + function-calling fix.** No-op — DeepSeek not used.
+- **#6287 — MCP Java SDK 2.0.0-M3 → 2.0.0-RC1** (transitive via the BOM). All 5 `mcp/` submodules (`SyncToolSpecification`, `McpToolUtils.toSyncToolSpecifications`, `McpSyncServer.addTool`, `ClientSse`) compile and pass tests with **zero code changes**.
+
+### Reactor verify
+- `./mvnw clean verify` — 42 modules, BUILD SUCCESS, all tests pass (~17s).
+- Runtime smoke: `provider-ollama` (`ui` profile) — `Started OllamaApplication in 2.1 seconds`. Verified the migrated endpoints return tool-backed answers: `/chat/05/time`, `/chat/05/weather` + `/chat/05/pack` (both `toolNames()`→`.tools()` sites with the injected `FunctionToolCallback`), and `/rag/01/query` (renamed advisor artifact loads and runs through `RetrievalAugmentationAdvisor`).
+
 ## [2.3.7] - 2026-05-28
 
 ### Changed
