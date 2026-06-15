@@ -21,7 +21,7 @@ ARCHIVE="${SCRIPT_DIR}/containers.tar.gz"
 #         docker/observability-stack/docker-compose.yaml
 WORKSHOP_IMAGES=(
   "pgvector/pgvector:pg18"
-  "dpage/pgadmin4:latest"
+  "dpage/pgadmin4:9.15"
   "grafana/otel-lgtm:latest"
   "maildev/maildev:2.2.1"
 )

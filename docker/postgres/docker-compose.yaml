@@ -22,7 +22,7 @@ services:
   pgadmin:
     labels:
       org.springframework.boot.ignore: true
-    image: "dpage/pgadmin4:latest"
+    image: "dpage/pgadmin4:9.15"
     environment:
       PGADMIN_DEFAULT_EMAIL: "admin@example.com"
       PGADMIN_DEFAULT_PASSWORD: "admin"
