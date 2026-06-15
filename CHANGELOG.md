@@ -26,7 +26,7 @@
 
 ### Reactor verify
 - `./mvnw clean verify` — **43 modules, BUILD SUCCESS, all tests pass (0 failures / 0 errors / 0 skipped)** on the GA stack, including the `gateway` module on Boot 4.1.0 and all `mcp/` modules on MCP SDK 2.0.0.
-- Runtime smoke (per-provider endpoint checks + Stage 6/7) recommended post-merge per the workshop's "reactor-green ≠ runtime-works" rule — see `SPRING_AI_RC1_TO_GA_UPGRADE_PLAN.md` Part 6.
+- Runtime smoke **passed** (2026-06-15): full stack exercised on a live provider with no issues, including the Stage 7 agentic tests and Stage 6 MCP demos — confirming the RC2 `#6349` change (auto-register `ToolCallingAdvisor` for runtime-injected tools), now active at GA, works under `mcp/04-dynamic-tool-calling`. Satisfies the workshop's "reactor-green ≠ runtime-works" rule — see `SPRING_AI_RC1_TO_GA_UPGRADE_PLAN.md` Part 6.
 
 ## [2.3.8] - 2026-06-08
 
