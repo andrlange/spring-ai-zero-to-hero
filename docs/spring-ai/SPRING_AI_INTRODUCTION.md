@@ -1,12 +1,13 @@
 # Spring AI Introduction
 
-**Spring AI Version:** 2.0.0-RC1
-**Spring Boot Version:** 4.0.6
+**Spring AI Version:** 2.0.0
+**Spring Boot Version:** 4.1.0
 **Java Version:** 25
 
 > **⚠ Spring AI 2.0.0 milestone progression** — this workshop has tracked the Spring AI 2.0.0 milestone line closely. Highlights of the recent bumps:
 >
-> - **M8 → RC1** *(current)* — first release candidate; **breaking** tool-calling API cleanup: `toolNames()` + `SpringBeanToolCallbackResolver` removed (pass `ToolCallback` beans to `.tools(...)` instead), the `ToolSpec` consumer API removed, `ToolCallAdvisor` renamed to `ToolCallingAdvisor`, `ImageOptionsBuilder.N()` → `.n()`, the vector-store advisor module renamed (`spring-ai-advisors-vector-store` → `spring-ai-vector-store-advisor`), and MCP Java SDK upgraded to 2.0.0-RC1. Plan: **[SPRING_AI_M8_TO_RC1_UPGRADE_PLAN.md](../../SPRING_AI_M8_TO_RC1_UPGRADE_PLAN.md)**.
+> - **RC1 → 2.0.0 GA** *(current)* — stabilisation release; **no breaking changes for this workshop** (zero application-code edits). Alongside it the stack moved to **Spring Boot 4.1.0** (Spring Framework 7.0.8, Spring Security 7.1.0) and **Spring Cloud 2025.1.2** (Gateway Server WebMVC 5.0.2, verified on Boot 4.1.0); MCP Java SDK rolled RC1 → **2.0.0**. Upstream GA tidy-ups with no workshop impact: `streamToolCallResponses` removed from advisor builders (#6391), `promptCacheKey` added to `OpenAiChatOptions` (#6380). Plan: **[SPRING_AI_RC1_TO_GA_UPGRADE_PLAN.md](../../SPRING_AI_RC1_TO_GA_UPGRADE_PLAN.md)**.
+> - **M8 → RC1** — first release candidate; **breaking** tool-calling API cleanup: `toolNames()` + `SpringBeanToolCallbackResolver` removed (pass `ToolCallback` beans to `.tools(...)` instead), the `ToolSpec` consumer API removed, `ToolCallAdvisor` renamed to `ToolCallingAdvisor`, `ImageOptionsBuilder.N()` → `.n()`, the vector-store advisor module renamed (`spring-ai-advisors-vector-store` → `spring-ai-vector-store-advisor`), and MCP Java SDK upgraded to 2.0.0-RC1. Plan: **[SPRING_AI_M8_TO_RC1_UPGRADE_PLAN.md](../../SPRING_AI_M8_TO_RC1_UPGRADE_PLAN.md)**.
 > - **M7 → M8** — fix-focused release; M8 #6138 restored the missing `spring-ai-autoconfigure-mcp-client-common` transitive dependency that broke every provider boot under M7. Plan: **[SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md](../../SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md)**.
 > - **M6 → M7** — `ToolCallAdvisor` (renamed `ToolCallingAdvisor` in RC1) became the default tool-call management option (see [Advisors and Request Context](#advisors-and-request-context) below); MCP Java SDK upgraded to 2.0.0-M3; SSE transports deprecated in favour of Streamable HTTP. Plan: **[SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md](../../SPRING_AI_M6_TO_M7_UPGRADE_PLAN.md)**.
 > - **M5 → M6** — chat-memory advisor API changed shape: `PromptChatMemoryAdvisor` removed, `MessageChatMemoryAdvisor.Builder.conversationId(String)` removed; conversation id now passed at request time via the `ChatMemory.CONVERSATION_ID` context key (see the M6 callout below). Doc: **[SPRING_AI_M5_TO_M6_MIGRATION.md](../../SPRING_AI_M5_TO_M6_MIGRATION.md)**.
@@ -110,7 +111,7 @@ spring:                         Reads properties → creates:
         model: gpt-4o-mini
 ```
 
-Each provider has its own Spring Boot starter that auto-configures the correct implementation. The table below uses the **Spring AI 2.0.0-RC1** artifact names; if you see older names like `spring-ai-<provider>-spring-boot-starter` floating around the web, those are the pre-2.0 convention.
+Each provider has its own Spring Boot starter that auto-configures the correct implementation. The table below uses the **Spring AI 2.0.0** artifact names; if you see older names like `spring-ai-<provider>-spring-boot-starter` floating around the web, those are the pre-2.0 convention.
 
 | Provider | Maven Starter (M5) | ChatModel Implementation |
 |----------|--------------------|--------------------------|
@@ -375,7 +376,7 @@ This requires the model to reliably produce valid JSON. Larger models (GPT-4o, C
 
 ### Supported Providers in This Workshop
 
-Artifact names are the **Spring AI 2.0.0-RC1** ones. See note ¹ above on Azure and ² on Google.
+Artifact names are the **Spring AI 2.0.0** ones. See note ¹ above on Azure and ² on Google.
 
 | Provider | Starter Dependency (M5) | Default Model | Local/Cloud |
 |----------|-------------------------|---------------|-------------|

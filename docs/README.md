@@ -1,6 +1,6 @@
 # Spring AI Zero-to-Hero Workshop
 
-**Spring Boot 4.0.6 | Spring AI 2.0.0-RC1 | Java 25**
+**Spring Boot 4.1.0 | Spring AI 2.0.0 | Java 25**
 
 A hands-on workshop for building AI-powered applications with Spring AI. Covers chat, embeddings, vector stores, RAG, tool calling, MCP, agentic patterns, and observability — across 6 AI providers.
 

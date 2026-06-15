@@ -35,8 +35,8 @@ ollama pull llava
 
 | Component | Version |
 |-----------|---------|
-| Spring Boot | 4.0.6 |
-| Spring AI | 2.0.0-RC1 |
+| Spring Boot | 4.1.0 |
+| Spring AI | 2.0.0 |
 | Java | 25 |
 | Maven | 3.9.14 (included via wrapper) |
 
@@ -55,7 +55,7 @@ ollama pull llava
 
 ## 1. Java 25
 
-Spring Boot 4.0.6 requires Java 25. We recommend using SDKMAN to manage Java versions.
+Spring Boot 4.1.0 requires Java 25. We recommend using SDKMAN to manage Java versions.
 
 ### Install SDKMAN
 
