@@ -96,7 +96,7 @@ public class EmbeddingRequestController {
                           "file split into 1245 chunks 3 embeddings created\nbecause we don't want to waste money by embedding every chunk")))
   @GetMapping("chunk")
   public String chunkFile() {
-    TokenTextSplitter tokenTextSplitter = new TokenTextSplitter();
+    TokenTextSplitter tokenTextSplitter = TokenTextSplitter.builder().build();
     List<String> chunks =
         tokenTextSplitter.split(new Document(shakespeareWorks)).stream()
             .map(d -> d.getText())

@@ -93,7 +93,7 @@ public class DocumentController {
   public String getShakespeareWorks() {
     DocumentReader reader = new TextReader(this.dataFiles.getShakespeareWorksResource());
     List<Document> documents = reader.get();
-    TokenTextSplitter tokenTextSplitter = new TokenTextSplitter();
+    TokenTextSplitter tokenTextSplitter = TokenTextSplitter.builder().build();
     List<Document> chunks = tokenTextSplitter.apply(documents);
     Document document = chunks.get(0);
     float[] embedding = this.embeddingModel.embed(document);
@@ -165,7 +165,7 @@ public class DocumentController {
                 documents.get(0).getMetadata(),
                 documents.get(0).getText());
 
-    TokenTextSplitter tokenTextSplitter = new TokenTextSplitter();
+    TokenTextSplitter tokenTextSplitter = TokenTextSplitter.builder().build();
     List<Document> chunks = tokenTextSplitter.apply(documents);
     Document document = documents.get(0);
     float[] embedding = this.embeddingModel.embed(document);
