@@ -20,7 +20,7 @@ public class BasicPromptController {
   // ChatModel is the primary interfaces for interacting with an LLM
   // it is a request/response interface that implements the ModelModel
   // interface. Make sure to visit the source code of the ChatModel and
-  // checkout the interfaces in the core spring ai package.
+  // check out the interfaces in the core Spring AI package.
   private final ChatModel chatModel;
 
   public BasicPromptController(ChatModel chatModel) {

@@ -84,7 +84,7 @@ public class AdvisorController {
     List<Document> documents = reader.get();
 
     // chunk documents to fit embedding model context window
-    TokenTextSplitter splitter = new TokenTextSplitter();
+    TokenTextSplitter splitter = TokenTextSplitter.builder().build();
     List<Document> chunks = splitter.apply(documents);
 
     // add the chunked documents to the vector store

@@ -34,7 +34,7 @@ public class VectorStoreController {
   private final DataFiles dataFiles;
   private final VectorStore vectorStore;
 
-  public VectorStoreController(VectorStore vectorStore, DataFiles dataFiles) throws IOException {
+  public VectorStoreController(VectorStore vectorStore, DataFiles dataFiles) {
     this.dataFiles = dataFiles;
     this.vectorStore = vectorStore;
   }
@@ -56,7 +56,7 @@ public class VectorStoreController {
     List<Document> documents = reader.get();
 
     // chunk documents to fit embedding model context window (e.g., Ollama nomic-embed-text)
-    TokenTextSplitter splitter = new TokenTextSplitter();
+    TokenTextSplitter splitter = TokenTextSplitter.builder().build();
     List<Document> chunks = splitter.apply(documents);
     logger.info("Split {} documents into {} chunks", documents.size(), chunks.size());
 
@@ -97,6 +97,6 @@ public class VectorStoreController {
     // search the vector store for the top 4 bikes that match the query
     List<Document> topMatches = this.vectorStore.similaritySearch(topic);
 
-    return topMatches.stream().map(document -> document.getText()).toList();
+    return topMatches.stream().map(Document::getText).toList();
   }
 }

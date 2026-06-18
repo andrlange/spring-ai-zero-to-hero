@@ -72,7 +72,7 @@ public class ChatClientController {
     // keep in mind that the same interfaces are used for dealing with
     // text, audio, video, images, and raw numbers. As such the underlying
     // low level interfaces need to be factored out in way, that enables
-    // higher level interfaces to be built. The API you are see in this
+    // higher level interfaces to be built. The API you see in this
     // controller is more like JDBC API as apposed to a higher level Spring
     // data jpa. Spring AI will be adding higher level interfaces on top
     // the low level interfaces you have seen so far.
