@@ -1,6 +1,6 @@
 # OpenAI
 
-**Spring Boot 4.1.0 | Spring AI 2.0.0 | spring-ai-starter-model-openai**
+**Spring Boot 4.1.1 | Spring AI 2.0.1 | spring-ai-starter-model-openai**
 
 To run the sample application you will need an OpenAI API key.
 

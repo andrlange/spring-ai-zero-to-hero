@@ -2,7 +2,7 @@
 # ============================================================
 # workshop.sh — Spring AI Zero-to-Hero Workshop Helper
 #
-# Tech Stack: Spring Boot 4.1.0 | Spring AI 2.0.0 | Java 25
+# Tech Stack: Spring Boot 4.1.1 | Spring AI 2.0.1 | Java 25
 #
 # Compatibility: macOS (bash 3.2+) and Linux (bash 4+).
 # Always invoked via bash shebang — works regardless of login shell.
@@ -898,7 +898,7 @@ ollama_up() {
 cmd_check() {
     echo ""
     echo -e "${BOLD}Spring AI Zero-to-Hero — Prerequisite Check${NC}"
-    echo -e "Tech Stack: Spring Boot 4.1.0 | Spring AI 2.0.0 | Java 25"
+    echo -e "Tech Stack: Spring Boot 4.1.1 | Spring AI 2.0.1 | Java 25"
     echo "──────────────────────────────────────────────"
 
     header "Java"
@@ -908,7 +908,7 @@ cmd_check() {
         if [ "${major:-0}" -ge 25 ] 2>/dev/null; then
             ok "Java ${major} — meets requirement (25+)"
         else
-            warn "Java ${major} detected — Spring Boot 4.1.0 requires Java 25+"
+            warn "Java ${major} detected — Spring Boot 4.1.1 requires Java 25+"
             info "Install via: sdk install java 25.0.2-librca"
         fi
     else
@@ -1591,7 +1591,7 @@ cmd_logs() {
 cmd_help() {
     echo ""
     echo -e "${BOLD}Spring AI Zero-to-Hero Workshop${NC} ${CYAN}v${WORKSHOP_VERSION}${NC}"
-    echo -e "Boot 4.1.0 | AI 2.0.0 | Java 25"
+    echo -e "Boot 4.1.1 | AI 2.0.1 | Java 25"
     echo ""
     echo -e "${BOLD}Usage:${NC}"
     echo "  ./workshop.sh [command] [options]"
@@ -1908,7 +1908,7 @@ draw_menu() {
     clear
     echo -e "${BOLD}${CYAN}┌──────────────────────────────────────────────────────────┐${NC}"
     echo -e "${BOLD}${CYAN}│${NC}  ${BOLD}Spring AI Zero-to-Hero Workshop${NC}  ${CYAN}v${WORKSHOP_VERSION}${NC}                 ${BOLD}${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}│${NC}  Boot 4.1.0 | AI 2.0.0 | Java 25                      ${BOLD}${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN}│${NC}  Boot 4.1.1 | AI 2.0.1 | Java 25                      ${BOLD}${CYAN}│${NC}"
     echo -e "${BOLD}${CYAN}├──────────────────────────────────────────────────────────┘${NC}"
     echo -e "${BOLD}${CYAN}│${NC}  Creds:   $(creds_status_line)"
     echo -e "${BOLD}${CYAN}│${NC}  State:   $(services_status_line_app)"

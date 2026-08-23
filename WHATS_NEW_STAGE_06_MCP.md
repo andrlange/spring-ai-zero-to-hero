@@ -215,7 +215,7 @@ Full section in `docs/troubleshooting.md § Stage 6 / MCP`.
 
 ## Implementation Highlights (for trainers curious about the UI internals)
 
-The Stage 6 dashboard is built on the existing workshop dashboard stack (Thymeleaf + Bootstrap 5 + vanilla JS). Key Spring AI 2.0.0 APIs used:
+The Stage 6 dashboard is built on the existing workshop dashboard stack (Thymeleaf + Bootstrap 5 + vanilla JS). Key Spring AI 2.0.1 APIs used:
 
 - **`McpClient.sync(transport).requestTimeout(…).build()`** — caller-managed client for 02/04/05 (long-lived) and 01 (per-request spawn).
 - **`HttpClientStreamableHttpTransport.builder(baseUrl).endpoint("/mcp")`** — HTTP client transport. No SSE anywhere in this codebase.

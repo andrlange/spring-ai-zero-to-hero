@@ -395,8 +395,8 @@
 (() => {
   'use strict';
 
-  // Milestone data — 42 entries: 4 origin + 4 ecosystem prelude + 1 MCP + 8 GA line +
-  // 12 1.1 line + 1 Boot 4 + 11 2.0 line + 1 Boot 4.1
+  // Milestone data — 44 entries: 4 origin + 4 ecosystem prelude + 1 MCP + 8 GA line +
+  // 12 1.1 line + 1 Boot 4 + 12 2.0 line + 2 Boot 4.1
   // Schema: {id, date, type:'spring-ai'|'ecosystem', version, badge, title, bullets:[..]}
   const MILESTONES = [
 
@@ -572,13 +572,21 @@
       bullets:['Spring Framework 7.0.8 + Spring Security 7.1.0','Java 25 baseline; AOT-cache improvements','Adopted by Spring AI 2.0.0 GA two days later'] },
 
     { id:'v2.0.0', date:'2026-06-12', type:'spring-ai', version:'v2.0.0', badge:'GA',
-      title:'Where we are today',
+      title:'Spring AI 2.0 goes GA',
       bullets:['Spring AI 2.0.0 GA — stabilisation, no breaking changes for us','Spring Boot 4.1.0 baseline; Spring Cloud Gateway 5.0.2 verified','MCP SDK 2.0.0; streamToolCallResponses removed (#6391)'] },
+
+    { id:'spring-boot-4-1-1', date:'2026-08-20', type:'ecosystem', version:'★ Boot', badge:'4.1.1',
+      title:'Spring Boot 4.1.1',
+      bullets:['Spring Framework 7.0.9 + Spring Security 7.1.1','Micrometer 1.17.1, Tomcat 11.0.24, Hibernate 7.4.5','Maintenance only — no breaking change for Maven builds'] },
+
+    { id:'v2.0.1', date:'2026-08-21', type:'spring-ai', version:'v2.0.1', badge:'2.0.1',
+      title:'Where we are today',
+      bullets:['First GA patch — safer tool-calling defaults','Tool-call limits (40/tool, 150 total); fallback resolution off','OpenAI strict schemas off by default; usage now accumulated'] },
   ];
 
   // World state
   const WORLD_START = 0;
-  const WORLD_END = 16640;            // 720 + 42 entries × 360 + 800; tuned in Task 6
+  const WORLD_END = 17360;            // 720 + 44 entries × 360 + 800; tuned in Task 6
   const SCROLL_SENSITIVITY = 1.4;     // wheel delta multiplier
   const STEP_FRAME_MS = 140;          // walk animation tempo
 
@@ -785,7 +793,7 @@
         panelTitle.textContent = 'Build the next agentic app with Spring AI';
         panelBullets.innerHTML =
           '<li>You walked through 30+ releases</li>' +
-          '<li>Spring AI 2.0.0 GA is the foundation</li>' +
+          '<li>Spring AI 2.0.1 is the foundation</li>' +
           '<li>Open the workshop dashboard and start shipping</li>';
         panel.classList.remove('eco');
         panel.classList.add('open');
