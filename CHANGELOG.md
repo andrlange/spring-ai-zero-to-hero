@@ -1,5 +1,45 @@
 # Changelog — Spring AI Zero-to-Hero Workshop
 
+## [2.4.1] - 2026-08-23
+
+### Changed
+- Bumped to the **first GA patch stack**: Spring AI `2.0.0` → **`2.0.1`** (2026-08-21) and Spring Boot `4.1.0` → **`4.1.1`** (2026-08-20) — across the parent POM, workshop docs, dashboard, slides (and the `slides.html.original` baseline), Grafana dashboard, `workshop.sh` banners, OpenAPI metadata, and all provider/component readmes.
+- **Zero application-code changes.** Spring AI 2.0.1 is a patch release that nonetheless ships **eleven documented breaking changes** — all eleven were audited line by line against this codebase and none of them apply (full table in `SPRING_AI_GA_TO_2_0_1_UPGRADE_PLAN.md`, Part 1).
+- Spring Boot 4.1.1 brings Spring Framework `7.0.9`, Spring Security `7.1.1`, Micrometer `1.17.1`, Tomcat `11.0.24`, Hibernate `7.4.5.Final` and Jackson `2.21.5`/`3.1.5` (all transitive). Its only breaking change is Gradle-plugin-only (gRPC no longer auto-configured when the Protobuf plugin is applied) and therefore does not affect this Maven build.
+- **Spring Cloud stays at `2025.1.2`** — the Initializr BOM range declares it compatible with Spring Boot `>=4.0.0` and `<4.2.0-M1`, so 4.1.1 needs no train bump. MCP Java SDK stays at `2.0.0` (transitive via the Spring AI BOM); Spring Cloud Gateway Server WebMVC stays at `5.0.2`.
+- Two new entries added to the pixel-art Spring AI History timeline (42 → 44): `Spring Boot 4.1.1` (2026-08-20) and `v2.0.1` (2026-08-21, now "Where we are today"); the `v2.0.0` GA entry retitled to "Spring AI 2.0 goes GA".
+- Workshop version `2.4.0` → `2.4.1` (`VERSION`, `workshop.properties`, `prepare.sh` defaults + replace-literals, `layout.html` placeholder).
+
+### Breaking changes in Spring AI 2.0.1 (audited — none apply)
+- **#6751 — fallback tool resolution disabled by default.** No-op: every workshop tool is attached explicitly via `.tools(...)` / `.toolCallbacks(...)`. The RC1 migration off `toolNames()` already removed all name-based resolution. Re-enable with `spring.ai.tools.resolution.fallback.enabled=true` if ever needed.
+- **#6726 / #6742 — `DefaultToolCallingManager` now caps tool calls at 40 per tool / 150 total.** No-op: Stage 7's agent loops and the Stage 1/6 tool demos stay far below. Overridable via `spring.ai.tools.limits.*`.
+- **#6755 / #6540 — `OpenAiChatModel` no longer defaults tool schemas to `strict(true)`.** No-op and an improvement: nothing sets `.strict(...)`, and tools with optional parameters are no longer rejected by OpenAI.
+- **#6424 — `ToolCallingAdvisor` accumulates token usage across the whole tool loop.** No code impact (no test or endpoint asserts token counts), but **Stage 8 will report higher token totals** for tool-calling requests — that is the corrected number, not a regression.
+- **#6534 — `@McpTool` exception dispatch aligned with `@Tool`.** No-op: zero `@McpTool` usages; all 5 `mcp/` servers expose tools via `@Tool` + `MethodToolCallbackProvider`.
+- **#6481 — `Media.Builder.data(Object)` replaced by typed overloads.** No-op: the single call site (`mcp/05-mcp-capabilities/.../PromptProvider.java`) passes a `String`, binding to `data(String)`.
+- **#6416 — Redis chat-memory autoconfig renamed** (`…-chat-memory-redis` → `…-chat-memory-repository-redis`, properties under `spring.ai.chat.memory.repository.redis.*`). No-op: Stage 4 uses in-memory `MessageWindowChatMemory`.
+- **#6772 + Mistral moderation category split.** No-op: Mistral is not one of the 6 workshop providers.
+- **#6733 — `OpenAiAudioSpeechModel.stream()` emits real chunks.** No-op: the audio component uses transcription plus non-streaming TTS.
+- **`TranscriptionModel` now extends `StreamingTranscriptionModel`.** No-op: we consume the framework's `OpenAiAudioTranscriptionModel`; there is no custom implementation.
+
+### Fixed (upstream — 2.0.1 fixes that land on workshop stages)
+- **#6438 — `PgVectorStore` validates its table schema after initialization.** Stage 3 / RAG under the `pgvector` profile now fails loudly on a mismatched `vector_store` table instead of misbehaving later.
+- **#6567 — `OllamaChatModel` prompt options inherit the configured model.** `provider-ollama`.
+- **#6180 / #6553 — Microsoft Foundry URL path mode behind proxy hosts; Azure OpenAI auth behind a TLS-inspecting proxy.** `provider-azure` (and the `spy` gateway profile).
+- **#6605 — `AnthropicChatOptions.timeout(Duration)` no longer ignored outside model construction.** `provider-anthropic`.
+- **#6531 / #6339 — `ToolChoice` support and thinking-level validation for Google GenAI.** `provider-google`.
+- **#823 / #5108 — AWS default region resolution now follows the SDK rules**, removing the confusing WARN. `provider-aws`.
+- **#6533 / #6716 / #5783 — MCP stdio connections without args, HTTP client request-customizer beans applied, Streamable HTTP accepts SSE frames without an `event` field.** Stage 6.
+- **#6475 — null parent for tool-call observations in blocking mode.** Stage 8 — tool-call spans nest correctly in the Tempo trace tree.
+- **#6381 — streaming tool-call deltas merged by index in `OpenAiChatModel`.** Stage 1 `/chat/05/*` and Stage 7 agents.
+- **#6498 / #6487 — shared mutable state in `ChatOptions.Builder.clone()` / `AnthropicChatOptions.Builder.clone()`.** Stage 7 — `AgentOptionsConfig` exposes a shared `ChatOptions.Builder` bean, so this removes a real cross-request aliasing hazard.
+- **#6452 / #6423 / #6645 — `TokenTextSplitter` builder validation and `MarkdownCodeBlockCleaner` edge cases.** Stages 2/3 and structured output generally.
+
+### Reactor verify
+- `./mvnw clean install` — **42 modules, BUILD SUCCESS, all tests pass (0 failures / 0 errors / 0 skipped)** on Spring Boot 4.1.1 + Spring AI 2.0.1, including the `gateway` module and all `mcp/` modules.
+- No new compiler warnings: the `TokenTextSplitter()`, `JsonParser` and `toolCallbacks(ToolCallbackProvider…)` deprecation warnings were A/B-checked against a 2.0.0 build and appear identically in both — they predate this bump.
+- **Runtime smoke: not yet run.** Per the workshop's "reactor-green ≠ runtime-works" rule, smoke Stage 1 tool calling, Stage 3 RAG under `pgvector` (#6438), Stage 6 MCP, Stage 7 agents and the Stage 8 trace tree against a live provider — matrix in `SPRING_AI_GA_TO_2_0_1_UPGRADE_PLAN.md`, Part 6.
+
 ## [2.4.0] - 2026-06-15
 
 ### Changed
