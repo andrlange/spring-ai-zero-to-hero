@@ -5,6 +5,8 @@
 > **Why it matters:** for a teaching workshop, "which versions actually work together, and where do I confirm that?" is a first-class question. Several of the answers are not written down anywhere authoritative — you have to *infer* them from `start.spring.io` or *prove* them with a build. This doc captures each gap, the evidence, and the workaround.
 >
 > **Companion:** [`SPRING_AI_RC1_TO_GA_UPGRADE_PLAN.md`](SPRING_AI_RC1_TO_GA_UPGRADE_PLAN.md) — the upgrade itself, with the empirical build evidence referenced below.
+>
+> **Revisited 2026-08-23** while bumping to Spring Boot 4.1.1 · Spring AI 2.0.1 · Spring Cloud 2025.1.2 (workshop `v2.4.1`). Gap 1 partially closed, and a new **Gap 6** added: a *patch* version number that carries eleven breaking changes.
 
 ---
 
@@ -17,6 +19,7 @@
 | 3 | GA release notes are a **non-cumulative delta** (skip RC2) | The GA release notes themselves | You must read RC1 **and** RC2 **and** GA to see the full picture |
 | 4 | Maven Central `<latest>` can point at a **prerelease** | `maven-metadata.xml` | `<latest>` ≠ `<release>`; tooling that keys off "latest" can pick RC2 |
 | 5 | Project docs assert the stack as **free-text banners** only | This repo's README / intro / OpenAPI metadata | No machine-checkable or linked compatibility evidence (improving) |
+| 6 | Spring AI **2.0.1** is a *patch* that ships **11 breaking changes** | The 2.0.1 release notes | Breaking list lives only behind an *upgrade-notes* anchor; the notes themselves file it under "New Features" |
 
 ---
 
@@ -40,8 +43,10 @@ The wiki lists **4.0.x**, not 4.1.x. Taken literally, that says "don't use Sprin
 
 **Scope — this is train-wide, not Gateway-specific.** Spring Cloud ships as a *single* BOM/release train: one `spring-cloud-dependencies:2025.1.2` import version pins every component. So the Boot-4.1.0 compatibility we proved for Gateway applies uniformly to **Eureka Server, Eureka Client, Config Server, Config Client, OpenFeign, Stream, Bus, Gateway, Contract, …** — but, again, that uniformity is nowhere written down. A team adopting, say, Eureka + Config on Boot 4.1.0 gets no documented green light; they'd have to repeat the start.spring.io / build dance themselves.
 
+**Update (2026-08-23) — partially closed.** The Initializr's own metadata (`https://start.spring.io/actuator/info`) now states the 2025.1.2 BOM range **explicitly**: Spring Boot `>=4.0.0` and `<4.2.0-M1`. That is a machine-readable compatibility statement, and it is why the 4.1.0 → **4.1.1** bump needed no Spring Cloud train change. The Supported-Versions wiki is *still* stale. So the gap narrows from "nowhere stated" to "stated only in an undocumented actuator endpoint that no release note points at".
+
 **Workaround / how to verify:**
-1. Open `start.spring.io`, pick the Boot version, and confirm the Spring Cloud train is offered (and which patch).
+1. Open `start.spring.io` (or read `start.spring.io/actuator/info` directly for the declared BOM ranges), pick the Boot version, and confirm the Spring Cloud train is offered (and which patch).
 2. Prove it with a build (`mvn -pl <cloud-module> -am verify`) and record the *resolved* component versions (`dependency:list`), not just the train number.
 3. Treat the Supported-Versions wiki as a **lagging** indicator, not ground truth.
 
@@ -107,14 +112,42 @@ They happen to match **now**, but during **June 9–12** `<latest>` was `2.0.0-R
 
 ## Gap 5 — This project's own docs assert the stack as free-text only
 
-The workshop's *own* documentation states its stack as prose banners — e.g. README's `Spring Boot 4.1.0 | Spring AI 2.0.0 | Java 25`, the `SPRING_AI_INTRODUCTION.md` header, and `OpenApiConfig`'s tech-stack string. These are:
+The workshop's *own* documentation states its stack as prose banners — e.g. README's `Spring Boot 4.1.1 | Spring AI 2.0.1 | Java 25`, the `SPRING_AI_INTRODUCTION.md` header, and `OpenApiConfig`'s tech-stack string. These are:
 
 - **not machine-checkable** (nothing fails if a banner drifts from the actual resolved version), and
 - **not linked to an authoritative compatibility source** (no pointer to start.spring.io / the build evidence).
 
-This is the *project-documentation* face of the same problem: a reader can't tell whether "Boot 4.1.0 | Spring AI 2.0.0" is a *verified-compatible* combination or just an aspiration.
+This is the *project-documentation* face of the same problem: a reader can't tell whether "Boot 4.1.1 | Spring AI 2.0.1" is a *verified-compatible* combination or just an aspiration.
 
-**What we're doing about it (the good pattern to keep):** the `SPRING_AI_*_UPGRADE_PLAN.md` docs now record the **empirically resolved** versions straight from `dependency:list` after a green `clean verify` (e.g. `spring-cloud-gateway-server-webmvc:5.0.2`, `spring-boot-autoconfigure:4.1.0`, `mcp:2.0.0`). That turns "the banner claims X" into "the build resolved X and passed," which is the evidence the official docs omit.
+**What we're doing about it (the good pattern to keep):** the `SPRING_AI_*_UPGRADE_PLAN.md` docs now record the **empirically resolved** versions straight from `dependency:list` after a green `clean verify` (e.g. `spring-cloud-gateway-server-webmvc:5.0.2`, `spring-boot:4.1.1`, `spring-core:7.0.9`, `spring-ai-openai:2.0.1`, `mcp:2.0.0`). That turns "the banner claims X" into "the build resolved X and passed," which is the evidence the official docs omit.
+
+---
+
+## Gap 6 — a *patch* release that ships eleven breaking changes
+
+**The question:** is it safe to take Spring AI `2.0.0` → `2.0.1` without reading anything?
+
+Under any normal reading of semantic versioning, yes — the patch digit moved. In fact **2.0.1 ships eleven documented breaking changes**, several of which are *silent behavioural* changes rather than compile errors:
+
+- fallback tool resolution **disabled by default** (#6751) — bean-registered tools that were never attached to a request simply stop being callable, at runtime, with no compile-time signal;
+- `DefaultToolCallingManager` now **caps** tool calls at 40 per tool / 150 total (#6726) — a long agent loop that used to finish now throws `ToolCallLimitExceededException`;
+- `OpenAiChatModel` no longer forces `strict(true)` tool schemas (#6755) — the request payload changes shape;
+- `ToolCallingAdvisor` **accumulates** token usage across the tool loop (#6424) — every dashboard, alert or cost calculation keyed on reported usage shifts upward.
+
+A project that upgrades on the strength of the version number alone gets none of these warnings. Nothing fails to compile.
+
+**Where the information actually lives — and doesn't:**
+
+| Surface | What it tells you |
+|---|---|
+| GitHub release `v2.0.1` | A flat list of ~90 PR titles under **New Features / Bug Fixes / Documentation / Dependency Upgrades**. The breaking changes are *scattered through those four sections*, indistinguishable from routine fixes — "Make tool resolution fallback configurable" reads like a feature, not a default flip |
+| The one-line pointer at the top of the release notes | A link to `upgrade-notes.html#upgrading-to-2-0-1` — the **only** place the eleven are enumerated as breaking |
+| A PR *titled* "Document additional 2.0.1 breaking changes" (#6771) | Filed under **:star: New Features**, next to "Harden Ollama integration tests" |
+| The version number `2.0.1` | Nothing. It actively misleads |
+
+**Why it matters:** the upgrade-notes page is good — thorough, with before/after code. The gap is *discoverability and signalling*: nothing in the version string, the release title, or the section headings tells a reader that this particular patch needs the migration guide. Compare Gap 3 (GA notes being a non-cumulative delta): same root cause, different surface — the release notes are organised by *change type*, never by *blast radius*.
+
+**Workaround:** treat **every** Spring AI version bump — patch included — as requiring a read of `upgrade-notes.html`, and grep your own source for each listed item rather than trusting the version digit. This repo now does that as a standing step in the bump workflow; the audit table lives in [`SPRING_AI_GA_TO_2_0_1_UPGRADE_PLAN.md`](SPRING_AI_GA_TO_2_0_1_UPGRADE_PLAN.md) Part 1.
 
 ---
 
@@ -125,9 +158,9 @@ Because the official surfaces are incomplete, use this order of trust:
 1. **`start.spring.io`** — for *which trains co-exist* (Boot ↔ Spring Cloud ↔ Spring AI). Authoritative for compatibility, implicit about exact versions.
 2. **Maven Central `maven-metadata.xml` → `<release>`** — for *what the latest GA actually is* (immune to prerelease "latest" confusion).
 3. **A real `clean verify` + `dependency:list`** — for *what your project actually resolves*, recorded as evidence.
-4. **Release notes** — for *what changed*, but read **every** intermediate prerelease since your current version, not just the GA page.
+4. **Release notes** — for *what changed*, but read **every** intermediate prerelease since your current version, not just the GA page. For Spring AI specifically, always open `upgrade-notes.html` for the target version **even on a patch bump** (Gap 6).
 5. **Compatibility wikis** — last, and only as a *lagging* hint; assume they trail the latest patch line.
 
 ---
 
-*Authored 2026-06-15 alongside the RC1 → GA bump. Findings 1–2 reported by the workshop maintainer; 3–5 surfaced during verification. Evidence: Spring AI / Spring Cloud `maven-metadata.xml`, GitHub Releases API (`gh api`), the Spring Cloud Supported-Versions wiki, and this repo's reactor build.*
+*Authored 2026-06-15 alongside the RC1 → GA bump; revisited 2026-08-23 alongside the 2.0.0 → 2.0.1 / Boot 4.1.0 → 4.1.1 bump (Gap 1 update, Gap 6 added). Findings 1–2 reported by the workshop maintainer; 3–6 surfaced during verification. Evidence: Spring AI / Spring Cloud `maven-metadata.xml`, GitHub Releases API (`gh api`), the Spring Cloud Supported-Versions wiki, and this repo's reactor build.*
