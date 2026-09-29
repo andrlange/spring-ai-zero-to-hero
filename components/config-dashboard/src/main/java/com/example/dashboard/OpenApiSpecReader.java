@@ -102,7 +102,7 @@ public class OpenApiSpecReader {
       return false;
     }
     for (JsonNode tag : tags) {
-      if (tagName.equals(tag.asText())) {
+      if (tagName.equals(tag.asString())) {
         return true;
       }
     }
@@ -143,17 +143,17 @@ public class OpenApiSpecReader {
         String example = "";
         // Check param-level example first, then schema-level
         if (param.has("example")) {
-          example = param.get("example").asText();
+          example = param.get("example").asString();
         }
         List<String> allowedValues = new ArrayList<>();
         JsonNode schema = param.get("schema");
         if (schema != null) {
           if (example.isEmpty() && schema.has("example")) {
-            example = schema.get("example").asText();
+            example = schema.get("example").asString();
           }
           if (schema.has("enum") && schema.get("enum").isArray()) {
             for (JsonNode v : schema.get("enum")) {
-              allowedValues.add(v.asText());
+              allowedValues.add(v.asString());
             }
             if (example.isEmpty() && !allowedValues.isEmpty()) {
               example = allowedValues.getLast();
@@ -229,6 +229,6 @@ public class OpenApiSpecReader {
 
   private String textOrEmpty(JsonNode node, String field) {
     JsonNode child = node.get(field);
-    return (child != null && !child.isNull()) ? child.asText() : "";
+    return (child != null && !child.isNull()) ? child.asString() : "";
   }
 }
