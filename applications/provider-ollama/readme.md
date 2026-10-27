@@ -1,6 +1,6 @@
 # Ollama (Local)
 
-**Spring Boot 4.1.1 | Spring AI 2.0.1 | spring-ai-starter-model-ollama**
+**Spring Boot 4.1.2 | Spring AI 2.0.2 | spring-ai-starter-model-ollama**
 
 Runs entirely locally with no API keys needed.
 

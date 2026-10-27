@@ -1,12 +1,13 @@
 # Spring AI Introduction
 
-**Spring AI Version:** 2.0.1
-**Spring Boot Version:** 4.1.1
+**Spring AI Version:** 2.0.2
+**Spring Boot Version:** 4.1.2
 **Java Version:** 25
 
 > **⚠ Spring AI 2.0 release progression** — this workshop has tracked the Spring AI 2.0 line closely, milestone by milestone. Highlights of the recent bumps:
 >
-> - **2.0.0 GA → 2.0.1** *(current)* — first GA patch. It is a patch release that still ships **eleven documented breaking changes**, none of which touch this workshop (audit table in **[SPRING_AI_GA_TO_2_0_1_UPGRADE_PLAN.md](../../SPRING_AI_GA_TO_2_0_1_UPGRADE_PLAN.md)**). The ones worth learning are behavioural defaults around tool calling: fallback tool resolution is now **off** by default (#6751), `DefaultToolCallingManager` enforces **call limits** (40 per tool, 150 total — #6726), `OpenAiChatModel` no longer forces `strict(true)` tool schemas (#6755), and `ToolCallingAdvisor` now **accumulates** token usage across the entire tool loop (#6424), so Stage 8 reports higher — and correct — totals. Also: `Media.Builder.data(Object)` replaced by typed overloads (#6481), `@McpTool` exception dispatch aligned with `@Tool` (#6534). Alongside it the stack moved to **Spring Boot 4.1.1** (Spring Framework 7.0.9, Spring Security 7.1.1); Spring Cloud stays **2025.1.2** and the MCP Java SDK stays **2.0.0**. Plan: **[SPRING_AI_GA_TO_2_0_1_UPGRADE_PLAN.md](../../SPRING_AI_GA_TO_2_0_1_UPGRADE_PLAN.md)**.
+> - **2.0.1 → 2.0.2** *(current)* — fix release, **no breaking changes for this workshop** (zero application-code edits). The upgrade notes list only new observations for OpenAI text-to-speech/transcription and Stability AI image calls (#7141 — the Stage 1 audio demo now appears in Stage 8 traces) and a Neo4j chat-memory index fix (#6967, not used here). Undocumented but relevant: `spring-ai-mcp` now pulls **MCP Java SDK 2.1.0** (HTTP client transport rework, `2024-11-05` protocol removed from Streamable HTTP, tool-list filtering). Other fixes touching the workshop: OpenAI configured timeout honoured again (#6837), Ollama responses without a message handled (#7066), Bedrock tool-call JSON fixed (#6963), Google GenAI mixed-content tool calls (#5468). Alongside it the stack moved to **Spring Boot 4.1.2** (Spring Framework 7.0.10, Spring Security 7.1.2) and **Spring Cloud 2025.1.4** (Gateway Server WebMVC 5.0.4). Plan: **[SPRING_AI_2_0_1_TO_2_0_2_UPGRADE_PLAN.md](../../SPRING_AI_2_0_1_TO_2_0_2_UPGRADE_PLAN.md)**.
+> - **2.0.0 GA → 2.0.1** — first GA patch. It is a patch release that still ships **eleven documented breaking changes**, none of which touch this workshop (audit table in **[SPRING_AI_GA_TO_2_0_1_UPGRADE_PLAN.md](../../SPRING_AI_GA_TO_2_0_1_UPGRADE_PLAN.md)**). The ones worth learning are behavioural defaults around tool calling: fallback tool resolution is now **off** by default (#6751), `DefaultToolCallingManager` enforces **call limits** (40 per tool, 150 total — #6726), `OpenAiChatModel` no longer forces `strict(true)` tool schemas (#6755), and `ToolCallingAdvisor` now **accumulates** token usage across the entire tool loop (#6424), so Stage 8 reports higher — and correct — totals. Also: `Media.Builder.data(Object)` replaced by typed overloads (#6481), `@McpTool` exception dispatch aligned with `@Tool` (#6534). Alongside it the stack moved to **Spring Boot 4.1.1** (Spring Framework 7.0.9, Spring Security 7.1.1); Spring Cloud stays **2025.1.2** and the MCP Java SDK stays **2.0.0**. Plan: **[SPRING_AI_GA_TO_2_0_1_UPGRADE_PLAN.md](../../SPRING_AI_GA_TO_2_0_1_UPGRADE_PLAN.md)**.
 > - **RC1 → 2.0.0 GA** — stabilisation release; **no breaking changes for this workshop** (zero application-code edits). Alongside it the stack moved to **Spring Boot 4.1.0** (Spring Framework 7.0.8, Spring Security 7.1.0) and **Spring Cloud 2025.1.2** (Gateway Server WebMVC 5.0.2, verified on Boot 4.1.0); MCP Java SDK rolled RC1 → **2.0.0**. Upstream GA tidy-ups with no workshop impact: `streamToolCallResponses` removed from advisor builders (#6391), `promptCacheKey` added to `OpenAiChatOptions` (#6380). Plan: **[SPRING_AI_RC1_TO_GA_UPGRADE_PLAN.md](../../SPRING_AI_RC1_TO_GA_UPGRADE_PLAN.md)**.
 > - **M8 → RC1** — first release candidate; **breaking** tool-calling API cleanup: `toolNames()` + `SpringBeanToolCallbackResolver` removed (pass `ToolCallback` beans to `.tools(...)` instead), the `ToolSpec` consumer API removed, `ToolCallAdvisor` renamed to `ToolCallingAdvisor`, `ImageOptionsBuilder.N()` → `.n()`, the vector-store advisor module renamed (`spring-ai-advisors-vector-store` → `spring-ai-vector-store-advisor`), and MCP Java SDK upgraded to 2.0.0-RC1. Plan: **[SPRING_AI_M8_TO_RC1_UPGRADE_PLAN.md](../../SPRING_AI_M8_TO_RC1_UPGRADE_PLAN.md)**.
 > - **M7 → M8** — fix-focused release; M8 #6138 restored the missing `spring-ai-autoconfigure-mcp-client-common` transitive dependency that broke every provider boot under M7. Plan: **[SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md](../../SPRING_AI_M7_TO_M8_UPGRADE_PLAN.md)**.
@@ -112,7 +113,7 @@ spring:                         Reads properties → creates:
         model: gpt-4o-mini
 ```
 
-Each provider has its own Spring Boot starter that auto-configures the correct implementation. The table below uses the **Spring AI 2.0.1** artifact names; if you see older names like `spring-ai-<provider>-spring-boot-starter` floating around the web, those are the pre-2.0 convention.
+Each provider has its own Spring Boot starter that auto-configures the correct implementation. The table below uses the **Spring AI 2.0.2** artifact names; if you see older names like `spring-ai-<provider>-spring-boot-starter` floating around the web, those are the pre-2.0 convention.
 
 | Provider | Maven Starter (M5) | ChatModel Implementation |
 |----------|--------------------|--------------------------|
@@ -377,7 +378,7 @@ This requires the model to reliably produce valid JSON. Larger models (GPT-4o, C
 
 ### Supported Providers in This Workshop
 
-Artifact names are the **Spring AI 2.0.1** ones. See note ¹ above on Azure and ² on Google.
+Artifact names are the **Spring AI 2.0.2** ones. See note ¹ above on Azure and ² on Google.
 
 | Provider | Starter Dependency (M5) | Default Model | Local/Cloud |
 |----------|-------------------------|---------------|-------------|
