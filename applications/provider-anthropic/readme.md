@@ -1,6 +1,6 @@
 # Anthropic
 
-**Spring Boot 4.1.1 | Spring AI 2.0.1 | spring-ai-starter-model-anthropic**
+**Spring Boot 4.1.2 | Spring AI 2.0.2 | spring-ai-starter-model-anthropic**
 
 To run the sample application you will need an Anthropic API key.
 

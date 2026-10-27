@@ -7,6 +7,8 @@
 > **Companion:** [`SPRING_AI_RC1_TO_GA_UPGRADE_PLAN.md`](SPRING_AI_RC1_TO_GA_UPGRADE_PLAN.md) — the upgrade itself, with the empirical build evidence referenced below.
 >
 > **Revisited 2026-08-23** while bumping to Spring Boot 4.1.1 · Spring AI 2.0.1 · Spring Cloud 2025.1.2 (workshop `v2.4.1`). Gap 1 partially closed, and a new **Gap 6** added: a *patch* version number that carries eleven breaking changes.
+>
+> **Revisited 2026-10-27** while bumping to Spring Boot 4.1.2 · Spring AI 2.0.2 · Spring Cloud 2025.1.4 (workshop `v2.4.2`). Two new gaps: **Gap 7**, a transitive *minor* MCP SDK bump that the Spring AI release notes do not mention, and **Gap 8**, a "still compatible" check that hid a newer security train.
 
 ---
 
@@ -20,6 +22,8 @@
 | 4 | Maven Central `<latest>` can point at a **prerelease** | `maven-metadata.xml` | `<latest>` ≠ `<release>`; tooling that keys off "latest" can pick RC2 |
 | 5 | Project docs assert the stack as **free-text banners** only | This repo's README / intro / OpenAPI metadata | No machine-checkable or linked compatibility evidence (improving) |
 | 6 | Spring AI **2.0.1** is a *patch* that ships **11 breaking changes** | The 2.0.1 release notes | Breaking list lives only behind an *upgrade-notes* anchor; the notes themselves file it under "New Features" |
+| 7 | Spring AI **2.0.2** bumps the **MCP Java SDK 2.0.0 → 2.1.0** (a minor) | The 2.0.2 release notes, *Dependency Upgrades* | Not listed anywhere; only visible in `spring-ai-mcp-2.0.2.pom` or a `dependency:tree` diff |
+| 8 | A newer Spring Cloud **security** train (2025.1.3, 17 CVEs) went unnoticed | `maven-metadata.xml` / Spring Cloud releases | The Initializr BOM range answers "is my train compatible?", not "is there a newer one?" |
 
 ---
 
@@ -151,6 +155,42 @@ A project that upgrades on the strength of the version number alone gets none of
 
 ---
 
+## Gap 7 — a *patch* release that carries a *minor* bump of a core transitive SDK
+
+**The question:** what changes under me when I go from Spring AI `2.0.1` to `2.0.2`?
+
+The release notes list two dependency upgrades: OpenAI Java SDK 4.80.0 (#7170) and AWS SDK 2.55.14 (#7169), plus the Anthropic SDK 2.72.0 under *New Features* (#7164). They do **not** mention that `spring-ai-mcp` 2.0.2 now declares **`io.modelcontextprotocol.sdk:mcp:2.1.0`** where 2.0.1 declared `2.0.0`. That is a minor release of the SDK behind every MCP client and server in a Spring AI app. It reworks the HTTP client transports (`Publisher`-based, composable request customizers), removes the `2024-11-05` protocol from Streamable HTTP, rejects non-JSON POSTs and replaces `ServerTransportSecurityValidator` with `ServerHttpHeaderValidator`.
+
+The upgrade-notes page, which Gap 6 made our mandatory stop, does not mention it either.
+
+**Evidence:**
+
+| Artifact | MCP SDK it declares |
+|---|---|
+| `org.springframework.ai:spring-ai-mcp:2.0.1` | `2.0.0` |
+| `org.springframework.ai:spring-ai-mcp:2.0.2` | **`2.1.0`** |
+| `spring-ai-bom` 2.0.1 / 2.0.2 | does **not** manage `io.modelcontextprotocol.sdk` at all, so the version is chosen by the transitive pom alone |
+
+**Why it matters:** a project that pins MCP behaviour (a custom transport, a header validator, an old client that only speaks `2024-11-05`) gets a behaviour change from a Spring AI patch with no signal anywhere. Because the BOM does not manage the SDK, a reader cannot find it there either.
+
+**Workaround:** diff the resolved classpath, not just the release notes. Run `./mvnw dependency:list` before and after the bump and read the release notes of **every third-party SDK whose minor moved**. For Spring AI that means at least the MCP Java SDK and the provider SDKs (OpenAI, Anthropic, AWS, Google GenAI). For this repo, the result is Part 1 of [`SPRING_AI_2_0_1_TO_2_0_2_UPGRADE_PLAN.md`](SPRING_AI_2_0_1_TO_2_0_2_UPGRADE_PLAN.md).
+
+---
+
+## Gap 8 — "still compatible" is not "still latest"
+
+**The question:** does Spring Cloud need to move when Spring Boot moves a patch?
+
+The 2.0.1 bump (2026-08-23) asked start.spring.io whether **2025.1.2** still covered Boot 4.1.1. It did (`>=4.0.0, <4.2.0-M1`), so the train stayed. But **2025.1.3 had shipped on 2026-08-20**, three days earlier, as a **security train with 17 CVE fixes** across Commons, Config, Function, Gateway and Stream. One of them, CVE-2026-47879, is in Spring Cloud Gateway, which this repo's `gateway` module uses. The question was answered correctly, but it was the wrong question.
+
+This gap is partly in our own process, but the official surfaces make it easy to miss. The Initializr metadata shows only the **newest** train per range (`2025.1.4` today), so it says nothing about how far behind you are. The Spring Cloud Supported-Versions wiki lists train *lines*, not patch releases. Nothing on the Spring Boot side mentions Spring Cloud security releases.
+
+Related: start.spring.io's `bom-ranges` for `spring-ai` still keyed `2.0.1` on 2026-10-27, four days after 2.0.2 reached Maven Central. Initializr lags patch releases too.
+
+**Workaround:** for **every** BOM in the root pom (Spring AI, Spring Cloud, Spring Cloud Azure, Spring Shell), check `maven-metadata.xml` `<release>` *and* the train's GitHub releases on each bump, and read any security advisories since the current version. Then decide explicitly whether to move. Record the decision, including "stays" with a reason.
+
+---
+
 ## Practical playbook — how to actually pin a compatible Spring stack
 
 Because the official surfaces are incomplete, use this order of trust:
@@ -158,9 +198,10 @@ Because the official surfaces are incomplete, use this order of trust:
 1. **`start.spring.io`** — for *which trains co-exist* (Boot ↔ Spring Cloud ↔ Spring AI). Authoritative for compatibility, implicit about exact versions.
 2. **Maven Central `maven-metadata.xml` → `<release>`** — for *what the latest GA actually is* (immune to prerelease "latest" confusion).
 3. **A real `clean verify` + `dependency:list`** — for *what your project actually resolves*, recorded as evidence.
-4. **Release notes** — for *what changed*, but read **every** intermediate prerelease since your current version, not just the GA page. For Spring AI specifically, always open `upgrade-notes.html` for the target version **even on a patch bump** (Gap 6).
-5. **Compatibility wikis** — last, and only as a *lagging* hint; assume they trail the latest patch line.
+4. **A `dependency:list` diff before/after** — for *which transitive SDKs moved a minor* (Gap 7); read those SDKs' release notes too.
+5. **Release notes** — for *what changed*, but read **every** intermediate prerelease since your current version, not just the GA page. For Spring AI specifically, always open `upgrade-notes.html` for the target version **even on a patch bump** (Gap 6).
+6. **Compatibility wikis** — last, and only as a *lagging* hint; assume they trail the latest patch line.
 
 ---
 
-*Authored 2026-06-15 alongside the RC1 → GA bump; revisited 2026-08-23 alongside the 2.0.0 → 2.0.1 / Boot 4.1.0 → 4.1.1 bump (Gap 1 update, Gap 6 added). Findings 1–2 reported by the workshop maintainer; 3–6 surfaced during verification. Evidence: Spring AI / Spring Cloud `maven-metadata.xml`, GitHub Releases API (`gh api`), the Spring Cloud Supported-Versions wiki, and this repo's reactor build.*
+*Authored 2026-06-15 alongside the RC1 → GA bump; revisited 2026-08-23 alongside the 2.0.0 → 2.0.1 / Boot 4.1.0 → 4.1.1 bump (Gap 1 update, Gap 6 added). Revisited again 2026-10-27 alongside the 2.0.1 → 2.0.2 / Boot 4.1.1 → 4.1.2 / Spring Cloud 2025.1.2 → 2025.1.4 bump (Gaps 7 and 8 added). Findings 1–2 reported by the workshop maintainer; 3–8 surfaced during verification. Evidence: Spring AI / Spring Cloud `maven-metadata.xml`, GitHub Releases API (`gh api`), the Spring Cloud Supported-Versions wiki, and this repo's reactor build.*

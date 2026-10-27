@@ -1,5 +1,33 @@
 # Changelog — Spring AI Zero-to-Hero Workshop
 
+## [2.4.2] - 2026-10-27
+
+### Changed
+- Bumped to the **second GA patch stack**: Spring AI `2.0.1` → **`2.0.2`** (2026-10-23), Spring Boot `4.1.1` → **`4.1.2`** (2026-10-22) and Spring Cloud `2025.1.2` → **`2025.1.4`** (2026-10-23). The bump covers the parent POM, workshop docs, dashboard, slides (and the `slides.html.original` baseline), Grafana dashboard, `workshop.sh` banners, OpenAPI metadata and all provider/component readmes.
+- **Zero application-code changes.** The 2.0.2 upgrade notes list two items. OpenAI TTS/transcription and Stability AI image calls are now observed (#7141). Neo4j chat-memory indexes were fixed (#6967). Neither needs a code change here (full audit in `SPRING_AI_2_0_1_TO_2_0_2_UPGRADE_PLAN.md`, Part 1).
+- **MCP Java SDK `2.0.0` → `2.1.0`**, pulled transitively by `spring-ai-mcp` 2.0.2 and *not* mentioned in the Spring AI release notes. 2.1.0 reworks the HTTP client transports into `Publisher`-based ones and removes the `2024-11-05` protocol from Streamable HTTP. All five Stage 6 demos were runtime-checked against it.
+- Spring Boot 4.1.2 brings Spring Framework `7.0.10`, Spring Security `7.1.2`, Micrometer `1.17.2`, Tomcat `11.0.27`, Hibernate `7.4.13.Final` and Jackson `2.21.7`/`3.1.7` (all transitive). It is a maintenance release with no breaking changes.
+- Spring Cloud `2025.1.4` brings **Gateway Server WebMVC `5.0.4`**. It includes the **2025.1.3 security train** (17 CVE fixes, among them CVE-2026-47879 in Spring Cloud Gateway 5.0.3), which the 2.4.1 bump had missed. BOM range per start.spring.io: Boot `>=4.0.0` and `<4.2.0-M1`.
+- Two new entries added to the pixel-art Spring AI History timeline (44 → 46): `Spring Boot 4.1.2` (2026-10-22) and `v2.0.2` (2026-10-23, now "Where we are today"). The `v2.0.1` entry is retitled to "First GA patch".
+- Workshop version `2.4.1` → `2.4.2` (`VERSION`, `workshop.properties`, `prepare.sh` defaults + replace-literals, `layout.html` placeholder).
+
+### Fixed (upstream — 2.0.2 fixes that land on workshop stages)
+- **#7141 — audio/image observations.** Stage 8 now shows `gen_ai.client.operation` spans and metrics for the OpenAI transcription demo.
+- **#6837 — configured OpenAI timeout honoured again.** `provider-openai`, `provider-azure`.
+- **#7066 / #6984 — Ollama responses without a message; disabled reasoning honoured in tool history.** `provider-ollama`.
+- **#7001 / #6982 — Anthropic returns the final answer first; thinking text in streaming chunks.** `provider-anthropic`.
+- **#6963 / #5468 — Bedrock tool-call JSON; Gemini mixed-content tool calls.** `provider-aws`, `provider-google` (Stage 1 `/chat/05/*`).
+- **#6797 — `TextReader` closes its resource stream.** Stage 2 `embed_04`.
+
+### Docs
+- New `SPRING_AI_2_0_1_TO_2_0_2_UPGRADE_PLAN.md`.
+- `SPRING_VERSION_DOC_GAP.md` adds **Gap 7** (a transitive *minor* SDK bump inside a *patch* release, absent from the release notes) and **Gap 8** (a "still compatible" check is not a "still latest" check, which is how 2025.1.3 was missed).
+
+### Verification
+- `./mvnw -U clean install` — **42 modules, BUILD SUCCESS, 114 tests, 0 failures / 0 errors / 0 skipped**. No new deprecation warnings (`JsonParser` and `toolCallbacks(ToolCallbackProvider…)` were already present in 2.0.1).
+- **Runtime smoke on `provider-ollama` + `ui`:** Stage 1 tool calling, Stage 2 embeddings, Stage 3 RAG (in-memory), Stage 4 chat memory, and Stage 6 all five MCP demos (stdio, Streamable HTTP, dynamic tool registration, resources/prompts, ChatClient + MCP). All passed.
+- **Not yet smoked:** Stage 3 under `pgvector`, Stage 7 agents (OpenAI), Stage 8 Grafana/Tempo, the `spy` gateway and the five cloud providers. The matrix is in the plan, Part 6.
+
 ## [2.4.1] - 2026-08-23
 
 ### Changed
